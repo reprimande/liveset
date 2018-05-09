@@ -1,0 +1,194 @@
+
+let (a, a_p) = pF "a" (Just 0.001)
+    (r1, r1_p) = pF "r1" (Just 0.001)
+    (r2, r2_p) = pF "r2" (Just 0.001)
+    (fr1, fr1_p) = pF "fr1" (Just 1)
+    (fr2, fr2_p) = pF "fr2" (Just 1)
+    (fr3, fr3_p) = pF "fr3" (Just 1)
+    (mr1, mr1_p) = pF "mr1" (Just 1)
+    (mr2, mr2_p) = pF "mr2" (Just 1)
+    (mr3, mr3_p) = pF "mr3" (Just 1)
+    (i1, i1_p) = pF "i1" (Just 1)
+    (i2, i2_p) = pF "i2" (Just 1)
+    (i3, i3_p) = pF "i3" (Just 1)
+    (m1, m1_p) = pF "m1" (Just 1)
+    (m2, m2_p) = pF "m2" (Just 1)
+    (m3, m3_p) = pF "m3" (Just 1)
+    (v1, v1_p) = pF "v1" (Just 1)
+    (v2, v2_p) = pF "v2" (Just 1)
+    (v3, v3_p) = pF "v3" (Just 1)
+    (v4, v4_p) = pF "v4" (Just 1)
+
+
+
+-- tsdelay :: Pattern Double -> ParamPattern
+-- tsdelay = make' VF tsdelay_p
+-- tsdelay_p = F "tsdelay" Nothing
+-- xsdelay :: Pattern Int -> ParamPattern
+-- xsdelay = make' VI xsdelay_p
+-- xsdelay_p = I "xsdelay" Nothing
+
+-- spectral delay
+let tsdelay = make' VF tsdelay_p
+    tsdelay_p = F "tsdelay" Nothing
+    xsdelay = make' VI xsdelay_p
+    xsdelay_p = I "xsdelay" Nothing
+
+d1 $ sound "can*4" # tsdelay "0 0.25 0.5 0.75 1" # xsdelay "3 124 3 12 62 2"
+
+
+d1 $ s "gabba(5,8,{0,2})" -- # note "{0,3,7,10} {-1,-3,-7,-10}" |+| note (choose [10,12]) # sustain (scale 0.2 0.8 rand)
+
+hush
+
+d1 $ s "{sfm*16?, supersaw*8?}" # note "{0,3,7,11}" # sustain rand
+
+d1 $ s "{pm*16?}" # note "{0,3,7,11}" |+| note (fast 32 $ choose [0,6] )|+| note (fast 16 $ choose (map (*12) [0,1,2,3]))# sustain (rand*0.8) # pan rand # a (rand*0.001) # r1 (fast 3 $ rand*1.8) # r2 (fast 3 $ rand*3) # i1 (rand * 3) # i2 (fast 16 $ rand * 3)
+
+
+hush
+
+d2 $ slow 16 $ s "supersaw(3,8,{0,1})" # note "{0,3,7,11}" |+| note (choose [0,3,6])  |+| note (fast 16 $ choose [-36,-24]) # sustain 10 # cutoff 100 # room 0.99
+
+d3 $ s "supersaw(13,16,{0,1})?" # note "0" |+| note (fast 16 $ choose [36,48]) # sustain rand # cut 1
+
+:t note
+
+d1 $ s "supersaw*8?" # note "{0,4,7,11}" |+| note (choose Chords.major) # sustain 0.2 # gain "0.3"
+
+d2 $ slow 2 $ s "supersaw(11,16, {0,1})?" # note (choose Scales.major) |+| note (choose (map (*12) [0,1])) # sustain 0.1 # gain 0.5
+
+
+d4 $ s "vo*16?" # note (fast 16 $ choose [0]) # sustain (fast 16 $ choose [(0.7)..(0.8)]) |+| note (choose [0]) # cut 1
+
+hush
+
+
+Chords.major
+
+:t scale
+
+d3 $
+  fast 1.4 $
+  sometimesBy 0.4 (within (0,0.4) (stut 3 0.7 0.125)) $
+  sometimesBy 0.2 (slow 2) $
+  sometimesBy 0.3 (zoom (0, 0.5)) $
+  stack [
+    s "bd(5,8,{0,3})",
+    s "{sn:2(1,8,4)}/2",
+    s "hh*8?" # up 1.5
+    ] # gain 1.2 # shape 0.6
+
+d1 $
+  fast 1.4 $
+  -- spreadr slow [1,2,3,4,5,6,7,8,9,10] $
+  spreadr fast [1,2,3,4,5,6] $
+  s "pmex(5, 8, {0,1})"
+  # note "{0,4,7,11}"
+  |+| note (fast 3 $ choose [-24,-12,0,12,24,36])
+  # fr1 (fast 16 $ rand * 10)
+  # fr2 (fast 17 $ rand * 10)
+  # fr3 (fast 18 $ rand * 10)
+  # mr1 (fast 19 $ rand * 10)
+  # mr2 (fast 20 $ rand * 10)
+  # mr3 (fast 21 $ rand * 10)
+  # i1 (fast 22 $ rand * 5)
+  # i2 (fast 23 $ rand * 5)
+  # i3 (fast 24 $ rand * 5)
+  # m1 (fast 22 $ rand * 5)
+  # m2 (fast 23 $ rand * 5)
+  # sustain (fast 0.5 $ (rand * 0.8))
+  # a (fast 26 $ choose [0.00001,0.01])
+  # pan rand
+
+hush
+
+d2 $
+  -- spreadr slow [6,7,8,9,10] $
+  spreadr fast (map (*2) [1,2,3,4,5,6]) $
+  s "hn*8?"
+  # n (choose [1,60,70])
+  # v1 (fast 6 $ scale 0.2 3 rand)
+  # v2 (fast 7 $ scale 0.1 3 rand)
+  # sustain (rand*0.1)
+  # gain 0.7
+  # pan rand
+  # cut 2
+  # nudge rand
+
+
+d2 $
+  spreadr slow [1,2,3,4,5,6,7,8,9,10] $
+  spreadr fast [1,2,3,4,5] $
+  s "lf2*8?"
+  # n (choose [1..90])
+  # v1 (fast 6 $ scale 0.5 2 rand)
+  # v2 (fast 7 $ scale 0.5 2 rand)
+  # v3 (fast 8 $ scale 0.5 2 rand)
+  # v4 (fast 9 $ scale 0.5 2 rand)
+  # sustain (rand * 0.8)
+  # gain 0.7
+  # pan rand
+  # cut (choose [1])
+  # nudge rand
+
+d1 silence
+
+hush
+
+
+
+do
+  d1 $
+    spreadr fast [1,2,3] $
+    sometimesBy 0.3 (stut 3 0.8 0.125) $
+    sometimesBy 0.8 (stut 6 0.3 0.125) $
+    every 3 (rev) $
+    every 4 (iter 4) $
+    stack [
+      gain "1/3 1/4 0/2 1*2 1/3 1/5" # s "bd" # shape 0.9 # pan rand,
+      gain "1/7 1/8 1/9" # s "cp" # shape 0.9 # pan rand,
+      gain "1/2 1/3 1/7 1/5" # s "vosim" # n (choose [0,3,7,11]) |+| n (choose [-48,-36])  # sustain (choose [0.2..3]) # shape 0.9 # pan rand # cut 3
+    ]
+
+hush
+
+do
+  cps(89/120)
+  d1 $
+    -- slow 2 $
+    every 6 rev $
+    foldEvery [4,9] (zoom (0, 0.75)) $
+    stack [
+      sometimes (within (0, 0.5) (stut 6 0.8 0.25)) $ foldEvery [3,7] (zoom (0, 0.5)) $ s "kick ~ ~ kick ~ ~ kick kick/2" |+| shape 0.6
+      , sometimes (stut 6 0.6 0.5) $ (0.5 ~>) $ s "{sn:4/2}/2" # speed 2 # shape 0.8
+      , every 3 rev $ sometimes (within (0, 0.5) (stut 3 0.8 0.125)) $ s "hh hh/2 hh hh hh hh/3 hh/8 hh" # speed 2 # shape 0.8 # pan rand
+      , gain "1/2 ~ 1/3 1 ~ 1 1/2 1*3" # s "pmbass" # n (choose [0,3,11]) |-| n "36" # sustain (choose [0.8..3]) # cut 1
+      , every 4 rev $ sometimesBy 0.6 (within (0, 0.5) (stut 6 0.8 0.125)) $ gain "1(11,16,{0,1})?" # s "pm" # n (fast 16 $ choose [0..48]) # sustain (fast 66 $ choose [0.1..0.57]) # pan (fast 24 $ rand) # cut 1
+      , sometimesBy 0.6 (stut 3 0.8 0.25) $ gain "1/3 ~ 1/4 ~" # s "pmpad" # n "{0,3,7,11}" |+| n (fast 8 $ choose [0,3,2,-1]) |-| n 24 # sustain (choose [5..8]) # gain 0.6 # a 0.4
+    ] -- # tsdelay "300 250 500 750 200" # xsdelay "300 124 30 120 620 300"
+
+d1 $ s "pmbass*8?" # n (choose [0,3,6]) |+| n "-36" # sustain 0.2 # cut 1
+
+d1 $ s "vosim*16?" # n (choose [0,3,6,11]) |+| n (fast 16 $ choose [-36,-48]) # sustain (rand + 0.2) # a (rand * 0.0001) # cut 1
+
+d1 $
+  stack [
+    gain "1 ~ ~ 1 ~ ~ 1 ~ 1 ~ 1 1 ~ ~ 1 1" # s "kick" # shape 0.5
+    , (0.5 ~>) $ gain "{1}" # s "sn:8" # speed 1.3
+    , gain "1*16?" # s "pmhh"
+    , s "vosim*16?" # n (choose [0,3,6,11]) |+| n (fast 16 $ choose [-60, -48, -36]) # sustain (rand * 0.8 + 0.1) # a (rand * 0.01) # shape 0.7 # cut 1
+    , s "pmpad" # n "{0,3,7,11}" |+| n (fast 8 $ choose [0,3,2,-1]) |-| n 24 # sustain (choose [5..8]) # gain 0.6 # a 0.4
+    ]
+
+
+d1 $ s "pm5*16" # n (fast 8 $ choose [0,3,5,7,11]) # sustain (rand)
+
+hush
+
+
+:t scale
+
+hush
+
+map (*12) [1,2,3]
