@@ -128,22 +128,24 @@ SynthDef("pm", {|
 
 (
 SynthDef("pm5", {|
-  out=0 , sustain=0.5, pan, accelerate, freq,
+  out=0 , midinote,sustain=0.5, pan, accelerate, freq,
   ffreq=200, famount=1500, rq=0.1, a=0.001,
   r1=1.0, r2=1.0, i1=5, i2=5|
   var env = EnvGen.ar(Env.perc(a, 0.999, 1, -4), timeScale:sustain, doneAction:2);
-  var f = [0,3,6,7,11,13,16,18,20,100,300].midicps + freq;
-  var o = PMOsc.ar(
-	f* PMOsc.ar(f*1.3, f*r2*env, i2*env),
-	f*r1*env,
+  var f = ([0,3,6,11,14] + midinote).midicps;
+  var o = Mix.ar(PMOsc.ar(
+	f* PMOsc.ar(f*1.3, f*r2, i2*env),
+	f*r1,
 	i1*env
-  );
+  )) * 0.25;
   OffsetOut.ar(out, DirtPan.ar(o, 2, pan, env));
 }).store;
 )
 
 
 [60,63,65,67,71].midicps + 400
+
+128.midicps
 
 
 
@@ -212,7 +214,7 @@ SynthDef("kick", {|out=0, freq=100,pan=0.5, sustain=0.5, a=0.00001, d=0.2|
 (
 SynthDef("pmhh", {|out=0, freq=20000, pan=0.5, sustain=0.5, a=0.00001, d=0.05|
   var env = EnvGen.ar(Env.perc(a, d, 1, -4), doneAction:2), f = 20000;
-  o = PMOsc.ar(f, f * 2.355555, 100 * env);
+  o = PMOsc.ar(f, f * 2.355555, 60 * env);
   OffsetOut.ar(out, DirtPan.ar(o * 0.5, 2, pan, env));
 }).store
 )

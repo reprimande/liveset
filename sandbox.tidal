@@ -182,7 +182,21 @@ d1 $
     ]
 
 
-d1 $ s "pm5*16" # n (fast 8 $ choose [0,3,5,7,11]) # sustain (rand)
+d1 $
+  slow 3 $
+  spreadr fast [0.25,0.5,0.75,1,1.25,1.5,1.725,2,3] $
+  s "{pm5(13,16,{0,2}), bd*16, sn:4*3?, cp*5?, pmhh*16}"
+  # n (fast 8 $ choose [0,8])
+  |+| n "{24 36}/3"
+  # r1 (fast 2 $ rand * 3)
+  # i1 (fast 3 $ rand * 10)
+  # r2 (fast 4 $ rand * 2)
+  # i2 (fast 5 $ rand * 10)
+  # sustain (choose ([0.5..0.7]))
+  # a (rand * 0.1)
+  # shape 0.7
+  # nudge rand
+  # pan rand
 
 hush
 
