@@ -39,6 +39,7 @@ s.options.memSize = 8192 * 128;
 
 s.boot
 
+
 s.quit
 
 
@@ -143,12 +144,6 @@ SynthDef("pm5", {|
 )
 
 
-[60,63,65,67,71].midicps + 400
-
-128.midicps
-
-
-
 (
 SynthDef("pmpad", {|
   out=0 , sustain=0.5, pan, accelerate, freq,
@@ -190,6 +185,61 @@ SynthDef("pmex", {|
 )
 
 
+
+// http://mcld.co.uk/blog/2009/reverse-engineering-the-rave-hoover.html
+(
+SynthDef(\hv, { |out=0,freq=440, pan=0.5|
+    var midfreqs, son, vibamount;
+
+    // Portamento:
+    var f = freq.lag(0.2, 0.6);
+    // you could alternatively try:
+    //  freq = Ramp.kr(freq, 0.2);
+
+    // vibrato doesn't fade in until note is held:
+    vibamount = EnvGen.kr(Env([0,0,1],[0.0,0.4], loopNode:1), HPZ1.kr(f).abs);
+    // Vibrato (slightly complicated to allow it to fade in):
+    f = LinXFade2.kr(f, f * LFPar.kr(3).exprange(0.98, 1.02), vibamount * 2 - 1);
+
+    // We want to chorus the frequencies to have a period of 0.258 seconds
+    // ie freq difference is 0.258.reciprocal == 3.87
+    midfreqs = f + (3.87 * (-2 .. 2));
+
+    // Add some drift to the frequencies so they don't sound so digitally locked in phase:
+    midfreqs = midfreqs.collect{|f| f + (LFNoise1.kr(2) * 3) };
+
+    // Now we generate the main sound via Saw oscs:
+    son = LFSaw.ar(midfreqs).sum
+        // also add the subharmonic, the pitch-locked bass:
+        + SinOsc.ar(f * [0.25, 0.5, 0.75], 0, [1, 0.3, 0.2] * 2).sum;
+
+    // As the pitch scoops away, we low-pass filter it to allow the sound to stop without simply gating it
+    son = RLPF.ar(son, f * if(f < 100, 1, 32).lag(0.01));
+
+    // Add a bit more mid-frequency emphasis to the sound
+    son = son + BPF.ar(son, 1000, mul: 0.5) + BPF.ar(son, 3000, mul: 0.3);
+
+    // This envelope mainly exists to allow the synth to free when needed:
+    son = son * 0.1;
+
+    OffsetOut.ar(out, DirtPan.ar(son, 2, pan));
+}).store;
+)
+
+(
+SynthDef("shoover", {|out=0,freq=1000,pan=0.5,sustain=0.5|
+  var f = freq * Line.kr(1.4, 1, sustain);
+  var o = Mix.ar([
+	SyncSaw.ar(freq, f + SinOsc.ar(0.3)),
+	SyncSaw.ar(freq, f + SinOsc.ar(0.4) * 1.02),
+	SyncSaw.ar(freq, f + SinOsc.ar(0.5) * 1.06)
+  ]) * 0.33;
+  OffsetOut.ar(0, DirtPan.ar(o, 2, pan))
+}).store;
+)
+
+
+s.dumpOSC(0)
 
 (
 SynthDef("vosim", { |out = 0, freq = 1000, pan=0.5, sustain=0.5, a=0.00001|
@@ -247,8 +297,6 @@ SynthDef("lf2", {|out=0, freq=100, pan=0, sustain=0.5,v1=1,v2=3,v3=0.5,v4=0.5|
 }).store
 )
 
-
-256.midicps
 
 (
 SynthDef("hn", {|out=0, freq=100, pan=0, sustain=0.5,v1=1,v2=3|
