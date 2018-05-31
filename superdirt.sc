@@ -24,7 +24,7 @@ s.options.numInputBusChannels = 2; // set this to your hardware input channel si
 s.latency_(0.5);
 s.waitForBoot {
     ~dirt = SuperDirt(2, s); // two output channels, increase if you want to pan across more channels
-    ~dirt.loadSoundFiles;   // load samples (path containing a wildcard can be passed in)
+pp    ~dirt.loadSoundFiles;   // load samples (path containing a wildcard can be passed in)
     s.sync; // wait for samples to be read
     ~dirt.start(57120, [0, 0]);   // start listening on port 57120, create two orbits, each sending audio to channel 0. You can direct sounds to the orbits from tidal e.g. by: `# orbit "0 1 1"
 }
@@ -255,7 +255,8 @@ SynthDef("vosim", { |out = 0, freq = 1000, pan=0.5, sustain=0.5, a=0.00001|
 (
 SynthDef("kick", {|out=0, freq=100,pan=0.5, sustain=0.5, a=0.00001, d=0.2|
   var env = EnvGen.ar(Env.perc(a, d, 1, -4), doneAction:2);
-  o = PMOsc.ar(env * freq * 0.8, env * (freq * 0.9), env * 1.8) + SinOsc.ar((freq * 1.2) * env + 20, 0.5);
+  var f = 200;
+  o = PMOsc.ar(env * f * 0.8, env * (f * 0.9), env * 1.8) + SinOsc.ar((f * 1.2) * env + 20, 0.5);
   OffsetOut.ar(out, DirtPan.ar(o * 0.5, 2, pan, env));
 }).store
 )
@@ -307,8 +308,20 @@ SynthDef("hn", {|out=0, freq=100, pan=0, sustain=0.5,v1=1,v2=3|
   var env = EnvGen.kr(Env.linen(0.001, 1, 0, -4), timeScale:sustain, doneAction:2);
   OffsetOut.ar(out, DirtPan.ar(o, 2, pan, env));
 }).store
+
+
+(
+SynthDef("st1", {|out=0, freq=1000, pan=0, sustain=0.5,k=1, xi=0.5, yi=0|
+  var o = StandardN.ar(freq, k, xi, yi);
+  OffsetOut.ar(out, DirtPan.ar(o, 2, pan))
+}).store
+)
 )
 
+
+{SinOscFB.ar(MouseY.kr(10,1000,'exponential'),MouseX.kr(0.01,100))*0.1}.play
+
+{SinOscFB.ar(100*SinOscFB.ar(MouseY.kr(1,1000,'exponential'))+200,MouseX.kr(0.5pi,pi))*0.1}.play
 
 
 
@@ -500,3 +513,6 @@ LorenzL.ar(
 {GbmanN.ar(SampleRate.ir/4, MouseX.kr(10, -10), MouseY.kr(10, -10))}.play
 
 s.dumpOSC
+
+
+

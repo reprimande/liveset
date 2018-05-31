@@ -18,6 +18,9 @@ let (a, a_p) = pF "a" (Just 0.001)
     (v2, v2_p) = pF "v2" (Just 1)
     (v3, v3_p) = pF "v3" (Just 1)
     (v4, v4_p) = pF "v4" (Just 1)
+    (k, k_p) = pF "k" (Just 1)
+    (xi, xi_p) = pF "xi" (Just 1)
+    (yi, yi_p) = pF "yi" (Just 1)
 
 
 
@@ -36,6 +39,10 @@ let tsdelay = make' VF tsdelay_p
 
 d1 $ sound "can*4" # tsdelay "0 0.25 0.5 0.75 1" # xsdelay "3 124 3 12 62 2"
 
+
+d1 $ s "bd*3"
+
+hush
 
 d1 $ s "gabba(5,8,{0,2})" -- # note "{0,3,7,10} {-1,-3,-7,-10}" |+| note (choose [10,12]) # sustain (scale 0.2 0.8 rand)
 
@@ -69,7 +76,7 @@ Chords.major
 :t scale
 
 d3 $
-  fast 1.4 $
+  -- fast 1.4 $
   sometimesBy 0.4 (within (0,0.4) (stut 3 0.7 0.125)) $
   sometimesBy 0.2 (slow 2) $
   sometimesBy 0.3 (zoom (0, 0.5)) $
@@ -220,3 +227,15 @@ hush
 hush
 
 map (*12) [1,2,3]
+
+
+d1 $ spreadr fast [0.25,0.5,1,2,3,4,5] $ sometimes (stut 3 0.9 0.25) $ s "{hv*7?,st1*16?, kick*8?}" # n (choose ([0,12,12,12,24,36,48,60,72,84])) # pan rand # sustain (rand*3) # nudge rand # shape 0.99 # cut (choose [1,2,3])
+
+
+d1 $ spreadr fast [0.25,0.5,1,2,3,4,5] $ sometimes (stut 3 0.9 0.25) $ s "{st1*3?,hv*7?, kick*8?}" # n (choose ([0,12,24,36,48,60])) # pan rand # sustain (rand*3) # nudge rand # cut (choose [1])
+
+
+d1 $ spreadr slow [2,3,4,5] $ spreadr fast [1,2,3,4,5,6,7] $ sometimes (stut 3 0.9 0.25) $ s "{st1*8?,pm5*6?, kick*5?}" # n (choose [-36, -24,-16,-12,12,24,80]) # k (fast 2 $ (rand+0.5)) # shape rand  # sustain (rand*3)# nudge rand # pan (rand) # a (rand*0.1) # cut (choose[1,2,3])
+
+
+hush
