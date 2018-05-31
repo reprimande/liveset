@@ -1,8 +1,3 @@
-{-- Initial --}
-
-:load /home/reprimande/src/github.com/reprimande/tidal-tools/zzz.hs
-import Sound.Tidal.Zzz
-
 let ps = [
       S "synth" (Just ""),
       I "ch" (Just 0),
@@ -60,7 +55,6 @@ let ps = [
     acc = makeI zzzShape "acc"
     pgm = makeI zzzShape "pgm"
 
-
 s0 <- zzzStream "/zzz" 12345 ps
 s1 <- zzzStream "/zzz" 12345 ps
 s2 <- zzzStream "/zzz" 12345 ps
@@ -76,57 +70,10 @@ funcA a d g = attack a # decay d # gain g # gate 1
 funcB a d g = attack2 a # decay2 d # gain2 g # gate2 1
 funcB' a d g o = funcB a d g # offset2 o
 sr a b = scale a b rand
-
-step :: String -> String -> Pattern String
-step s steps = fastcat $ map f steps
-    where f c | c == 'x' = atom s
-              | c >= '0' && c <= '9' = atom $ s
-              | otherwise = silence
-
-
-
-data ParamSet = ParamSet { p_n  :: Pattern Int,
-                     p_a1 :: Pattern Double,
-                     p_d1 :: Pattern Double,
-                     p_a2 :: Pattern Double,
-                     p_d2 :: Pattern Double,
-                     p_i2 :: Pattern Double
-                   } deriving (Show)
-
-defP = ParamSet { p_n  = 0, p_a1 = 0, p_d1 = 0, p_a2 = 0, p_d2 = 0, p_i2 = 0 }
-
-baP = defP { p_n = 0 }
-bdP = defP
-chP = defP
-ohP = defP
-cpP = defP
-atP = defP { p_n = 24, p_d1 = 0.3 }
-thP = defP { p_n = 36, p_d1 = 0.3 }
-bjP = defP { p_n = 24, p_d1 = 0.3 }
-acP = defP { p_n = 48, p_a1 = 0.0001, p_d1 = 0.3, p_a2 = 0.0001, p_d2 = 0.3, p_i2 = 0.2 }
-dpP = defP { p_n = 60, p_a1 = 0.0001, p_d1 = 0.3, p_a2 = 0.0001, p_d2 = 0.3, p_i2 = 0.2 }
-
-perc s p = gate p # synth s
-perc' s p = perc s p # note (p_n a) # decay (p_d1 a)
-voice s p = perc s p # note (p_n a) # funcA (p_a1 a) (p_d1 a) 1 # funcB (p_a2 a) (p_d2 a) (p_i2 a)
-
-ba p = perc "ba" p
-bd p = perc "bd" p
-ch p = perc "ch" p
-oh p = perc "oh" p
-cp p = perc "cp" p
-at p = perc "at" p
-th p = perc "th" p
-bj p = perc "bj" p
-ac p = perc "ac" p # note 48 # a1 0.001 # d1 0.3 # i1 1 # a2 0.001 # d2 0.2 # i2 0.5 # gate2 p
-dp p = perc "dp" p # note 24 # a1 0.001 # d1 0.3 # i1 1 # a2 0.001 # d2 0.2 # i2 0.5 # gate2 p
-
 ssBy p n d = sometimesBy p $ stut n 1 d
 cs xs = (fast 16 $ choose xs)
 nc xs = note $ cs xs
 oc xs = note $ cs [x * 12 | x <- xs]
-
-
 
 a1 n = attack n
 d1 n = decay n
@@ -141,5 +88,13 @@ a2r n x = a2 $ (44 <~) $ sr n x
 d2r n x = d2 $ (55 <~) $ sr n x
 i2r n x = i2 $ (66 <~) $ sr n x
 
-
-hush'
+ba p = gate p # synth "ba"
+bd p = gate p # synth "bd" p
+ch p = gate p # synth "ch" p
+oh p = gate p # synth "oh" p
+cp p = gate p # synth "cp" p
+at p = gate p # synth "at" p # note 36 # d1 0.1
+th p = gate p # synth "th" p # note 48 # d1 0.3
+bj p = gate p # synth "bj" p # note 12 # d1 0.3
+ac p = gate p # synth "ac" p # note 48 # a1 0.001 # d1 0.3 # i1 1 # a2 0.001 # d2 0.2 # i2 0.5 # gate2 p
+dp p = gate p # synty "dp" p # note 24 # a1 0.001 # d1 0.3 # i1 1 # a2 0.001 # d2 0.2 # i2 0.5 # gate2 p
