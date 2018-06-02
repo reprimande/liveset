@@ -66,6 +66,41 @@ s7 <- zzzStream "/zzz" 12345 ps
 s8 <- zzzStream "/zzz" 12345 ps
 let hush' = mapM_ ($ silence) [s0,s1,s2,s3,s4,s5,s6,s7,s8]
 
+a1 n = attack n
+d1 n = decay n
+i1 n = gain n
+a2 n = attack2 n
+d2 n = decay2 n
+i2 n = gain2 n
+ra1 n x = a1 $ (11 <~) $ sr n x
+rd1 n x = d1 $ (22 <~) $ sr n x
+ri1 n x = i1 $ (33 <~) $ sr n x
+ra2 n x = a2 $ (44 <~) $ sr n x
+rd2 n x = d2 $ (55 <~) $ sr n x
+ri2 n x = i2 $ (66 <~) $ sr n x
+
+ba p = (101 <~) $ gate p # synth "ba"
+bd p = (102 <~) $ gate p # synth "bd"
+ch p = (103 <~) $ gate p # synth "ch"
+oh p = (104 <~) $ gate p # synth "oh"
+cp p = (105 <~) $ gate p # synth "cp"
+at p = (106 <~) $ gate p # synth "at" # note 36 # d1 0.1
+th p = (107 <~) $ gate p # synth "th" # note 48 # d1 0.3
+bj p = (108 <~) $ gate p # synth "bj" # note 12 # d1 0.3
+ac p = (109 <~) $ gate p # synth "ac" # note 48 # a1 0.001 # d1 0.3 # i1 1 # a2 0.001 # d2 0.2 # i2 0.5 # gate2 p
+dp p = (110 <~) $ gate p # synth "dp" # note 24 # a1 0.001 # d1 0.3 # i1 1 # a2 0.001 # d2 0.2 # i2 0.5 # gate2 p
+
+rr xs = foldEvery xs (spreadr (<~) [0.125, 0.25, 0.5, 0.75])
+zz xs = foldEvery xs (zoom (0, 0.5))
+stut' n d = stut n 1 d
+wssBy x s e = sometimesBy x (within (s, e) (spreadr ($) [(stut' 3 0.125), (stut' 3 0.25), (stut' 5 0.3)]))
+wssByA x = wssBy x 0 0.5
+wssByB x = wssBy x 0.5 1
+brokenF = spreadr fast [ x * 0.25 | x <- [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]]
+          . sometimes (zoom (0,0.5))
+brokenS = spreadr slow [ x * 0.25 | x <- [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]]
+          . sometimes (zoom (0,0.5))
+dBy = degradeBy
 funcA a d g = attack a # decay d # gain g # gate 1
 funcB a d g = attack2 a # decay2 d # gain2 g # gate2 1
 funcB' a d g o = funcB a d g # offset2 o
@@ -74,27 +109,3 @@ ssBy p n d = sometimesBy p $ stut n 1 d
 cs xs = (fast 16 $ choose xs)
 nc xs = note $ cs xs
 oc xs = note $ cs [x * 12 | x <- xs]
-
-a1 n = attack n
-d1 n = decay n
-i1 n = gain n
-a2 n = attack2 n
-d2 n = decay2 n
-i2 n = gain2 n
-a1r n x = a1 $ (11 <~) $ sr n x
-d1r n x = d1 $ (22 <~) $ sr n x
-i1r n x = i1 $ (33 <~) $ sr n x
-a2r n x = a2 $ (44 <~) $ sr n x
-d2r n x = d2 $ (55 <~) $ sr n x
-i2r n x = i2 $ (66 <~) $ sr n x
-
-ba p = gate p # synth "ba"
-bd p = gate p # synth "bd"
-ch p = gate p # synth "ch"
-oh p = gate p # synth "oh"
-cp p = gate p # synth "cp"
-at p = gate p # synth "at" # note 36 # d1 0.1
-th p = gate p # synth "th" # note 48 # d1 0.3
-bj p = gate p # synth "bj" # note 12 # d1 0.3
-ac p = gate p # synth "ac" # note 48 # a1 0.001 # d1 0.3 # i1 1 # a2 0.001 # d2 0.2 # i2 0.5 # gate2 p
-dp p = gate p # synty "dp" # note 24 # a1 0.001 # d1 0.3 # i1 1 # a2 0.001 # d2 0.2 # i2 0.5 # gate2 p

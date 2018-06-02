@@ -140,7 +140,7 @@ s.waitForBoot{
   OSCdef(\zzz, {|msg, time, addr, recvPort|
 	var d = (\ch: -1, \gate: -1, \note: -1, \device: 'es', \cv: nil, \length: 0.001, \slew: 0.0, \synth: 'foo'),
 	ch = -1, gate = -1, note = -1, device, cv, length, slew, synth;
-	// msg.postln;
+	msg.postln;
 	msg[3..].pairsDo({ |k, v| d.put(k, v); });
 
 	device = d.at(\device);

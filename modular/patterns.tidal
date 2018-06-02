@@ -1,141 +1,113 @@
-data Foo = Foo { bar :: Int, baz :: String } deriving Show
+do
+  s1 $
+    brokenF $
+    brokenS $
+    stack [
+    rr [2,5] $ e 5 8 $ ba "1" # nc [0,0,0,30,60,80]
+    , ch "1*8?"
+    , rr [4,5] $ e 5 8 $ dp "1" # note "0 4 3 8 6" # a1 0.0001 # rd1 0.3 1.5
+    , rr [3,7] $ e 5 8 $ ac "1" # note 24 # a1 0.0001 # d1 0.8 # a2 0.00001 # d2 0.4 # ri2 0.3 0.8
+    , th "1" # note 24 # d1 3
+    ]
 
-let f = Foo {bar = 1, baz = "hoge"}
-
-
-patA n = stack [
-  every 3 (0.125 <~) $ every 2 (0.25 <~) $ ba "1(5,8)" # nc [0,0,0,30,60,80]
-  , ch "1*8?"
-  , every 3 (0.125 <~) $ every 2 (0.25 <~) $ dp "1(5,8)" # note "0 4 3 8 6" # a1 0.0001 # d1r 0.3 1.5
-  , every 3 (0.25 <~) $ every 2 (0.125 <~) $ ac "1(5,8)" # note n # a1 0.0001 # d1 0.8 # a2 0.00001 # d2 0.4 # i2r 0.3 0.8
-  , th "1" # note 24 # d 3
-  ]
-
-
-s1 $ ac "1*3" # nc [0,6,11] |+| oc [5] # a1r 0.001 0.008 # d1r 0.3 4
-
-hush'
-
-cps(150/120)
-
-patA' = stack [
-  every 3 (0.125 <~) $ every 2 (0.25 <~) $ e 5 8 $ ba "1" $ baP{ p_n = (choose [0,0,0,30,60,80]) }
-  , ch "1*8?" chP
-  , slow 4 $ oh "1*8?" ohP
-  , every 3 (0.125 <~) $ every 2 (0.25 <~) $ e 5 8 $ dp "1" dpP{ p_n = "0 4 3 8 6", p_d1 = (sr 0.3 1.5) }
-  , every 3 (0.25 <~) $ every 2 (0.125 <~) $ e 5 8 $ ac "1" acP{ p_n = 30, p_d1 = 0.8, p_d2 = 0.4, p_i2 =(sr 0.3 0.8) }
-  , th "1" thP{ p_n = 24, p_d1 = 3}
-  ]
-
-
-patB = spreadr fast (map (* 0.25) [1,2,3,4,5,6,7]) $
-  sometimesBy 0.7 (spreadr ($) [(stut 3 1 (4/8)), (stut 4 1 (7/16)), (stut 2 1 (12/16))]) $
-  degradeBy d $
-  stack [
-  synth "{dp*7?, ac*11, at*14?}"
-    # note (choose n)
-    |+| note (fast 24 $ choose (map (* 12) o))
-    # funcA (scale 0.0001 0.001 (fast 32 $ rand)) (scale dm dx (fast 48 $ rand)) 1
-    # funcB (scale 0.0001 0.001 (fast 36 $ rand)) (scale dm dx (fast 64 $ rand)) (scale im ix (fast 99 $ rand))
-    # slew (scale 0.0001 0.0001 rand)
-  , synth "{bd?, ba*8?, cp*3?, oh*3?, ch*16?}" # decay (scale 0.01 0.3 (fast 48 $ rand)) # gate pg # nudge (sr 0.01 0.99)
-  , synth "bj*6?" # decay ((sr dm dx) * 0.2) # note (choose (map (* 12) [0,2,8])) # gate lg
-    -- , spreadr slow [1,2,3] $ synth "th*7?" # note (choose Scales.minor) |+| note (choose (map (*12) to)) # decay (sr 0.1 0.8) # gate tg
-  ]
-  where
-    d = 0.8
-    n = [0,3]
-    o = [0,3,4]
-    dm = 0.1
-    dx = 4
-    im = 0.4
-    ix = 0.9
-    lg = 1
-    pg = 1
-    to = [0,1,2,4]
-    tg = 1
-    pm = [0,1]
+do
+  let d = 0.8
+      n = [0,3]
+      o = [0,3,4]
+      dm = 0.1
+      dx = 4
+      im = 0.4
+      ix = 0.9
+      lg = 1
+      pg = 1
+      to = [0,1,2,4]
+      tg = 1
+      pm = [0,1]
+  s1 $ spreadr fast (map (* 0.25) [1,2,3,4,5,6,7]) $
+    wssByA 0.7 $
+    dBy d $
+    stack [
+    stack [dp "1*7?", ac "1*11", at "1*14?"]
+    # nc n
+    |+| oc o
+    # ra1 0.0001 0.001 # rd1 dm dx # i1 1
+    # ra2 0.0001 0.001 # rd2 dm dx # ri2 im ix
+    # slew (sr 0.0001 0.0001)
+    , stack [bd "1?", ba "1*8?", cp "1*3?", oh "1*3?", ch "1*16?"] # rd1 0.01 0.3
+    , bj "1*6?" # rd1 dm dx # oc [0,2,8]
+    ,  brokenS $ th "1" # nc Scales.minor |+| oc to # rd1 0.1 0.8
+    ]
 
 
-patC = stack [
-  foldEvery [3,7] (zoom (0, 0.5)) $ gate "1 ~ ~ 1 ~ ~ 1 1/2" # synth "ba bd/3" # note 0
-  , sometimesBy 0.3 (stut 3 1 0.25) $ (0.5 ~>) $ gate "1/2" # synth "cp"
-  , every 3 rev $ gate "1 1/2 1 1 1 1/3 1/8 1" # synth "ch"
-  , gate "1*4" # synth "oh"
-  , gate "1 1/7 1/3 1/4 1/5 1 1/2 1/6" # synth "dp" # note (choose [0,3,11]) |+| note 12 # funcA 0.0001 (sr 0.2 3) 1
-  , every 4 rev $ gate "1(11,16,{0,1})?" # synth "at" # note (fast 16 $ choose [0..48]) # decay (fast 66 $ choose [0.2..0.5])
-  , gate "1/3 ~ 1/4 ~" # synth "th" # note (fast 8 $ choose [0,3,2,-1]) |+| note 24 # decay (choose [5..8])
-  ]
+do
+  s1 $ stack [
+    zz [3,7] $ ba "1 ~ ~ 1 ~ ~ 1 1/2" # note 0
+    , bd "1/3"
+    , ssBy 0.3 3 0.25 $ (0.5 ~>) $ cp "1/2"
+    , every 3 rev $ ch "1 1/2 1 1 1 1/3 1/8 1"
+    , oh "1*4?"
+    , dp "1 1/7 1/3 1/4 1/5 1 1/2 1/6" # nc [0,3,11] |+| oc [12] # a1 0.0001 # rd1 0.2 3
+    , every 4 rev $ at "1(11,16,{0,1})?" # nc [0..48] # rd1 0.2 0.5
+    , th  "1/3 ~ 1/4 ~" # nc [0,3,2,-1] |+| oc [24] # rd1 5 8
+    ]
 
-s1 $ patD
+do
+  s1 $ stack [
+    randcat [ba "1*4", ba "1*3", bd "1*4", bd "1*3"] # nc [0..10]
+    , randcat [ch "1*4", ch "1*6"]
+    , randcat [oh "1", oh "1*2", oh "1*3"]
+    , randcat [cp "1*3", cp "1*2"]
+    , randcat [ac "1*4?", ac "1*3", ac "1*6?"]
+      # nc Scales.diminished2 |+| oc [0,3,4,5,6,7]
+      # ra1 0.0001 0.0001 # rd1 0.4 3
+      # ra2 0.0001 0.05 # rd2 0.8 3 # ri2 0.4 0.8
+    , randcat [dp "1*16?"]
+      # nc [0,3,6,11] |+| oc [2,3,4]
+      # ra1 0.0001 0.0001 # rd1 0.2 0.8
+      # ra2 0.0001 0.05 # rd2 0.3 0.6 # ri2 0.04 0.4
+      # slew (sr 0.001 0.2)
+    , randcat [at "1*5", at "1*3"]
+      # nc [0..96]
+      # rd1 0.1 0.2
+    ]
 
-hush'
+do
+  s1 $
+    spreadr ($) [e 11 16, e 8 11,e 7 13, e 6 11, e 3 13] $
+    stack [
+    ba "1"
+    , ac "1"
+      # nc [5,6,8] |+| oc [8]
+      # ra1 0.0001 0.001 # rd1 0.4 0.8
+      # ra2 0.0001 0.001 # rd2  0.4 3 # ri2 0.8 0.8
+    , dp "1"
+      # nc [0] |+| oc [1]
+      # ra1 0.0001 0.001 # rd1 0.4 2
+      # ra2 0.0001 0.001 # rd2 0.4 3 # ri2 0.2 0.8
+    , th "1"
+      # nc [0] |+| oc [6,7]
+      # rd1 0.8 0.9
+    , at "1"
+      # nc[90..127]
+      # rd1 0.2 0.8
+    -- , synth "bj"
+    --   # note (fast 32 $ choose [72..127])
+      --   # decay (scale 0.4 0.8 rand)
+    --   # gate 1
+    , oh "1"
+    ]
 
-patD = stack [
-  randcat [synth "ba*4", synth "ba*3", synth "bd*4", synth "bd*3"] # note 0 # decay (choose [0.1..0.8]) # gate 1
-  , randcat [synth "ch*4", synth "ch*6"] # gate 1
-  , randcat [synth "oh", synth "oh*2", synth "oh*3"] # gate 1
-  , randcat [synth "cp*3", synth "cp*2"] # gate 1
-  , randcat [synth "ac*4?", synth "ac*3", synth "ac*6?"]
-    # note (fast 59 $ choose Scales.diminished2)
-    |+| note (fast 60 $ choose (map (* 12) [0,3,4,5,6,7]))
-    # funcA 0.0001 (sr 0.4 3) 1
-    # funcB 0.0001 (slow 3 $ sr 0.8 3) (sr 0.4 0.8)
-  , randcat [synth "dp*16?"]
-    # note (slow 3 $ choose [0,3,6,11])
-    |+| note (slow 2 $ choose [2,3,4])
-    # funcA 0.0001 (sr 0.2 0.8) 1
-    # funcB 0.0001 (sr 0.3 0.6) (sr 0.01 0.4)
-    # slew (sr 0.001 0.2)
-  , randcat [synth "at*5", synth "at*3"]
-    # note (choose [0..96])
-    # decay (sr 0.1 0.2)
-    # gate 1
-  ]
-
-
-patE =
-  spreadr ($) [e 11 16, e 8 11,e 7 13, e 6 11, e 3 13] $
-  stack [
-  synth "ba" # gate 1
-  , synth "ac"
-    # note (choose [5,6,8])
-    |+| note (fast 8 $ choose (map (* 12) [8]))
-    # funcA 0.0001 (scale 0.4 0.8 rand) 1
-    # funcB 0.0001 (fast 16 $ scale 0.4 3 rand) (scale 0.8 0.8 rand)
-  , synth "dp"
-    # note (fast 8 $ choose [0])
-    |+| note (choose (map (*12) [1]))
-    # funcA 0.0001 (scale 0.4 2 rand) 1
-    # funcB 0.0001 (fast 16 $ scale 0.4 3 rand) (scale 0.8 0.8 rand)
-  , synth "th"
-    # note (fast 8 $ choose [0])
-    |+| note (choose (map (*12) [6,7]))
-    # gate 1
-    # decay 0.9
-  , synth "at"
-    # note (fast 32 $ choose [90..127])
-    # decay (scale 0.2 0.8 rand)
-    # gate 1
-  -- , synth "bj"
-  --   # note (fast 32 $ choose [72..127])
-  --   # decay (scale 0.4 0.8 rand)
-  --   # gate 1
-  , synth "oh"
-    # gate 1
-  ]
-
-
-patF =
-  stack [
-  synth "bd ~ bd/2 ba ~ bd/4 ~ ba/2" # gate 1
-  , synth "{dp*6?}%4" # note "{0 3 2 6 2 11}%4" |+| note (choose (map (*12) [0,1])) # funcA 0.0001 (sr 0.8 2) 1 # funcB 0.0001 (sr 0.2 0.6) 1
-  , synth "{ac(16,16)}/2" # note (choose [36]) # funcA 0.00001 0.4 1 # funcB 0.0001 0.3 0.7
-  , sometimesBy 0.6 (within (0, 0.25) (stut 6 1 0.25)) $ synth "at*8?" # gate 1 # note 36 # decay (rand * 0.1 + 0.1)
-  , slow 1.5 $ synth "th(3,8,1)" # gate 1 # note 60 # decay 0.2
-  , (1 ~>) $ synth "ch*8?" # gate 1
-  , synth "oh*2" # gate 1
-  ]
+do
+  s1 $ stack [
+    bd "1 ~ 1/2 ba ~ 1/4 ~ ba/2"
+    , dp "{1*6?}%4" # note "{0 3 2 6 2 11}%4"
+      |+| nc [0,1] # a1 0.0001 # rd1  0.8 2 # a2 0.0001 # rd2 0.2 0.6 # ri2 0.3 0.9
+    , ac "{1(16,16)}/2" # nc [36] # a1 0.00001 # rd1 0.3 0.4 # a2 0.0001 # rd2 0.3 0.4 # ri2 0.6 0.7
+    , wssByA 0.6  $ at "1*8?" # note 36 # rd1 0.1 0.3
+    , slow 1.5 $ th "1(3,8,1)" # note 60 # rd1 0.2 0.3
+    , (1 ~>) $ ch "1*8?"
+    , oh "1*2"
+    ]
 
 
 patG =
@@ -150,88 +122,3 @@ patG =
 
 
 png f m = fast (f*8) $ synth "ph?" # mul 1
-
-do
-  hush'
-  cps(138/120)
-  s1 $ patF
-
-
-
-
-do
-  cps(89/120)
-  s1 $
-    -- degradeBy 0.3 $
-    -- spreadr slow (map (*0.25) [1,3,5,6,10]) $
-    -- sometimesBy 0.3 (within (0, 0.4) (stut 6 0.8 0.125)) $
-    -- sometimesBy 0.4 (within (0.25, 1) (stut 3 0.8 0.25)) $
-    -- every 3 (rev) $
-    -- every 4 (iter 4) $
-    patG
-  s8 $ png 8
-
-
-do
-  cps(89/120)
-  s1 $
-    -- degradeBy 0.8 $
-    -- every 6 rev $
-    -- foldEvery [4,9] (zoom (0, 0.75)) $
-    -- foldEvery [3,11] (zoom (0.25, 0.75)) $
-    patC
-  s8 $ synth "ph*3?" # mul (fast 3 $ choose [0])
-
-
-do
-  hush'
-  cps (140/120)
-  s1 $
-    -- sometimesBy 0.4 (spreadr (stut 3 1) (map (/8) [1,2,3]))  $
-    -- spreadr slow (map (* 0.5) [1,1.2,1.3]) $
-    -- spreadr fast [1,1,1.5,2,2.5,2.75,3] $
-    -- degradeBy 0.7 $
-    patD
-  s8 $ synth "ph*16?" # mul (choose [0,0,0])
-
-do
-  hush'
-  cps (140/120)
-  s1 $
-    spreadr slow [1.25, 1, 2] $
-    spreadr fast [0.75,1, 1.25,1,1.5,2,1.5,1.25] $
-    sometimes (fast 1.5) $
-    sometimes (fast 0.75) $
-    degradeBy 0.3 $
-    patE
-  s8 $ synth "ph*3" # mul (choose [0])
-
-do
-  cps(146/120)
-  s1 $
-    spreadr fast [1,2,3] $
-    sometimes (zoom (0,0.5)) $
-    patF
-  s8 $ synth "ph*8" # mul (choose [0])
-
-
-hush'
-
-
-do
-  cps(110/120)
-  hush'
-  s1 $
-    every 3 (slow 2) $
-    stack [
-      synth "ac(9,16,{0,2})" # note (choose [0,12,24,36,72]) # funcA 0.0001 0.8 1 # funcB 0.0001 0.1 0.9
-      , synth "at(9,16,{3,5})" # note (choose [0,72]) # decay 0.1 # gate 1
-      , synth "ba(9,16,{0,2})" # gate 1
-      , synth "ch(11,16)" # gate 1
-      , (0.5 ~>) $ synth "cp" # gate 1
-      , synth "th(7,16,{0,2})" # note (choose [60,72]) # gate 1 # decay 0.2
-    ]
-  s8 $ synth "ph" # mul 0
-
-
-hush'
