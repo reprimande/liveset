@@ -1,124 +1,95 @@
-do
-  s1 $
-    brokenF $
-    brokenS $
-    stack [
-    rr [2,5] $ e 5 8 $ ba "1" # nc [0,0,0,30,60,80]
-    , ch "1*8?"
-    , rr [4,5] $ e 5 8 $ dp "1" # note "0 4 3 8 6" # a1 0.0001 # rd1 0.3 1.5
-    , rr [3,7] $ e 5 8 $ ac "1" # note 24 # a1 0.0001 # d1 0.8 # a2 0.00001 # d2 0.4 # ri2 0.3 0.8
-    , th "1" # note 24 # d1 3
-    ]
-
-do
-  let d = 0.8
-      n = [0,3]
-      o = [0,3,4]
-      dm = 0.1
-      dx = 4
-      im = 0.4
-      ix = 0.9
-      lg = 1
-      pg = 1
-      to = [0,1,2,4]
-      tg = 1
-      pm = [0,1]
-  s1 $ spreadr fast (map (* 0.25) [1,2,3,4,5,6,7]) $
-    wssByA 0.7 $
-    dBy d $
-    stack [
-    stack [dp "1*7?", ac "1*11", at "1*14?"]
-    # nc n
-    |+| oc o
-    # ra1 0.0001 0.001 # rd1 dm dx # i1 1
-    # ra2 0.0001 0.001 # rd2 dm dx # ri2 im ix
-    # slew (sr 0.0001 0.0001)
-    , stack [bd "1?", ba "1*8?", cp "1*3?", oh "1*3?", ch "1*16?"] # rd1 0.01 0.3
-    , bj "1*6?" # rd1 dm dx # oc [0,2,8]
-    ,  brokenS $ th "1" # nc Scales.minor |+| oc to # rd1 0.1 0.8
-    ]
-
-
-do
-  s1 $ stack [
-    zz [3,7] $ ba "1 ~ ~ 1 ~ ~ 1 1/2" # note 0
-    , bd "1/3"
-    , ssBy 0.3 3 0.25 $ (0.5 ~>) $ cp "1/2"
-    , every 3 rev $ ch "1 1/2 1 1 1 1/3 1/8 1"
-    , oh "1*4?"
-    , dp "1 1/7 1/3 1/4 1/5 1 1/2 1/6" # nc [0,3,11] |+| oc [12] # a1 0.0001 # rd1 0.2 3
-    , every 4 rev $ at "1(11,16,{0,1})?" # nc [0..48] # rd1 0.2 0.5
-    , th  "1/3 ~ 1/4 ~" # nc [0,3,2,-1] |+| oc [24] # rd1 5 8
-    ]
-
-do
-  s1 $ stack [
-    randcat [ba "1*4", ba "1*3", bd "1*4", bd "1*3"] # nc [0..10]
-    , randcat [ch "1*4", ch "1*6"]
-    , randcat [oh "1", oh "1*2", oh "1*3"]
-    , randcat [cp "1*3", cp "1*2"]
-    , randcat [ac "1*4?", ac "1*3", ac "1*6?"]
-      # nc Scales.diminished2 |+| oc [0,3,4,5,6,7]
-      # ra1 0.0001 0.0001 # rd1 0.4 3
-      # ra2 0.0001 0.05 # rd2 0.8 3 # ri2 0.4 0.8
-    , randcat [dp "1*16?"]
-      # nc [0,3,6,11] |+| oc [2,3,4]
-      # ra1 0.0001 0.0001 # rd1 0.2 0.8
-      # ra2 0.0001 0.05 # rd2 0.3 0.6 # ri2 0.04 0.4
-      # slew (sr 0.001 0.2)
-    , randcat [at "1*5", at "1*3"]
-      # nc [0..96]
-      # rd1 0.1 0.2
-    ]
 
 do
   s1 $
+    stack [ ba "1*3?"  # nc [0..30]
+          , ac "1*8?"  # nc [4,5,6] |+| oc [1,3,6] # rd1 1.0 2.0 # ra2 1 3 # rd2 1 2 # ri2 0.3 0.8
+          , ak "1*16?" # nc [3,6]   |+| oc [0,2]   # rd1 0.1 0.4
+          ]
+  s8 $ synth "ph*8?" # mul (choose [0,1,0,0])
+
+do
+  s1 $
+    stack [ stack [dp "1*7?", ac "1*11", ak "1*14?"] # nc [0,3] |+| oc [0,8] # rd1 0.3 0.5 # rd2 0.2 0.7 # ri2 0.1 0.4
+          , stack [bd "1?", ba "1*8?", cp "1*3?", oh "1*3?", ch "1*16?"] # rd1 0.01 0.3
+          -- , bj "1*6?" # rd1 dm dx # oc [0,2,8]
+          ]
+  s8 $ synth "ph*8?" # mul (choose [0,0])
+
+hush'
+
+do
+  s1 $
+    stack [ zz [3,7] $ ba "1 ~ ~ 1 ~ ~ 1 1/2" # note 0
+          , bd "1/3"
+          , ssA 0.3 $ (0.5 ~>) $ cp "1/2"
+          , rr [3,8] $ ch "1 1/2 1 1 1 1/3 1/8 1"
+          , oh "1*4?"
+          , dp "1 1/7 1/3 1/4 1/5 1 1/2 1/6" # nc [0,3,11] |+| oc [0,1] # a1 0.0001 # rd1 0.8 3
+          , ssB 0.3 $ rr [4] $ rev $ ak "1(15,16,{0,1})" # nc [0..48] # rd1 0.1 0.2
+          -- , th  "1/3 ~ 1/4 ~" # nc [0,3,2,-1] |+| oc [12] # rd1 0.5 0.8
+          ]
+  s8 $ synth "ph*8?" # mul (choose [0,1])
+
+do
+  s1 $
+    stack [ randcat [ba x | x <- ["1*4", "1*3", "1/3"]] # nc [0]
+          , randcat [bd x | x <- ["1*4", "1*3", "1/4"]]
+          , randcat [ch x | x <- ["1*4", "1*6"]]
+          , randcat [oh x | x <- ["1", "1*2", "1*3"]]
+          , randcat [cp x | x <- ["1*3", "1*2"]]
+          , randcat [ac x | x <- ["1*4?", "1*3", "1*6?"]]
+            # nc Scales.diminished2 |+| oc [1]
+            # ra1 0.0001 0.0001 # rd1 0.1 0.3
+            # ra2 0.0001 0.05 # rd2 0.3 0.8 # ri2 0.8 1.2
+          , randcat [dp x | x <- ["1*16?"]]
+            # nc Scales.diminished2 |+| oc [0,1]
+            # ra1 0.0001 0.0001 # rd1 0.2 0.8
+            # ra2 0.0001 0.05 # rd2 0.3 0.6 # ri2 0.04 0.4
+            # rsl 0.001 0.2
+          , randcat [ak x | x <- ["1*5", "1*3"]]
+            # nc [0..96]
+            # rd1 0.1 0.2
+          ]
+  s8 $ synth "ph*8?" # mul (choose [0,1])
+
+do
+  s1 $
+    -- slow 4 $
+    brF 2 $
+    brS 0.8 $
     spreadr ($) [e 11 16, e 8 11,e 7 13, e 6 11, e 3 13] $
-    stack [
-    ba "1"
-    , ac "1"
-      # nc [5,6,8] |+| oc [8]
-      # ra1 0.0001 0.001 # rd1 0.4 0.8
-      # ra2 0.0001 0.001 # rd2  0.4 3 # ri2 0.8 0.8
-    , dp "1"
-      # nc [0] |+| oc [1]
-      # ra1 0.0001 0.001 # rd1 0.4 2
-      # ra2 0.0001 0.001 # rd2 0.4 3 # ri2 0.2 0.8
-    , th "1"
-      # nc [0] |+| oc [6,7]
-      # rd1 0.8 0.9
-    , at "1"
-      # nc[90..127]
-      # rd1 0.2 0.8
-    -- , synth "bj"
-    --   # note (fast 32 $ choose [72..127])
-      --   # decay (scale 0.4 0.8 rand)
-    --   # gate 1
-    , oh "1"
-    ]
+    stack [ ba "1"
+          , ac "1"
+            # nc [5,6,8] |+| oc [8]
+            # ra1 0.0001 0.001 # rd1 0.4 0.8
+            # ra2 0.0001 0.001 # rd2 0.4 3 # ri2 0.8 0.8
+          , dp "1"
+            # nc [0] |+| oc [1]
+            # ra1 0.0001 0.001 # rd1 0.4 2
+            # ra2 0.0001 0.001 # rd2 0.4 3 # ri2 0.2 0.8
+          , th "1"
+            # nc [0] |+| oc [4,4,4,6,7]
+            # rd1 0.2 0.8
+          , ak "1"
+            # nc[90..127]
+            # rd1 0.2 3
+          , oh "1"
+          ]
+  s8 $ synth "ph*8?" # mul (choose [0,0,0,1])
 
 do
-  s1 $ stack [
-    bd "1 ~ 1/2 ba ~ 1/4 ~ ba/2"
-    , dp "{1*6?}%4" # note "{0 3 2 6 2 11}%4"
-      |+| nc [0,1] # a1 0.0001 # rd1  0.8 2 # a2 0.0001 # rd2 0.2 0.6 # ri2 0.3 0.9
-    , ac "{1(16,16)}/2" # nc [36] # a1 0.00001 # rd1 0.3 0.4 # a2 0.0001 # rd2 0.3 0.4 # ri2 0.6 0.7
-    , wssByA 0.6  $ at "1*8?" # note 36 # rd1 0.1 0.3
-    , slow 1.5 $ th "1(3,8,1)" # note 60 # rd1 0.2 0.3
-    , (1 ~>) $ ch "1*8?"
-    , oh "1*2"
-    ]
+  s1 $
+    stack [ bd "1 ~ 1/2 ~ ~ 1/4 ~ ~"
+             , ba "1(3,8)"
+             , dp "{1*6?}%4" # note "{0 3 2 6 2 11}%4"
+               |+| nc [0,1] # a1 0.0001 # rd1 0.8 2 # a2 0.0001 # rd2 0.2 0.6 # ri2 0.3 0.9
+             , ac "{1(8,16)}?" # oc [4,5,6] # a1 0.00001 # rd1 0.01 0.1 # a2 0.0001 # rd2 0.3 0.4 # ri2 0.6 0.7
+             , ssA 0.6  $ ak "1*8?" # note 36 # rd1 0.1 0.3
+             , slow 3 $ th "1(3,8,1)" # note 48 # rd1 0.2 0.3
+             , (1 ~>) $ ch "1*8?"
+             , oh "1*2"
+             ]
+  s8 $ synth "ph" # mul (choose [0,0])
 
+hush'
 
-patG =
-  stack [
-  synth "bd/3 ba/4 bd/8 ba*2 bd/3 ba/4" # gate 1
-  , gate "1/7 1/8 1/2 1/3 1/9" # synth "cp"
-  , gate "1/2 1*3 1/3 1/5" # synth "dp" # nc [0,3,7,11] |+| nc [0,1] # attack 0.001 # decay (sr 0.8 3) # gain 1
-  , gate "1/16 1/12 1/13" # synth "th" # note 12 # decay 2
-  , gate "1*2 0 1/2 1*3 1/3" # synth "at" # nc [0..80] # decay (sr 0.2 0.3)
-  , synth "oh/3 ch*6 ch/2 ch/3" # gate 1
-  ]
-
-
-png f m = fast (f*8) $ synth "ph?" # mul 1
