@@ -1,0 +1,141 @@
+-- configure
+
+(midicmd, midicmd_p) = pS "midicmd" (Nothing)
+(midichan, midichan_p) = pF "midichan" (Nothing)
+(progNum, progNum_p) = pF "progNum" (Nothing)
+(val, val_p) = pF "val" (Nothing)
+(uid, uid_p) = pF "uid" (Nothing)
+(array, array_p) = pS "array" (Nothing)
+(frames, frames_p) = pF "frames" (Nothing)
+(seconds, seconds_p) = pF "seconds" (Nothing)
+(minutes, minutes_p) = pF "minutes" (Nothing)
+(hours, hours_p) = pF "hours" (Nothing)
+(frameRate, frameRate_p) = pF "frameRate" (Nothing)
+(songPtr, songPtr_p) = pF "songPtr" (Nothing)
+(ctlNum, ctlNum_p) = pF "ctlNum" (Nothing)
+(control, control_p) = pF "control" (Nothing)
+(amp, amp_p) = pF "amp" (Nothing)
+(sysex1, sysex1_p) = pF "sysex1" (Nothing)
+(sysex2, sysex2_p) = pF "sysex2" (Nothing)
+(sysex3, sysex3_p) = pF "sysex3" (Nothing)
+(sysex4, sysex4_p) = pF "sysex4" (Nothing)
+(sysex5, sysex5_p) = pF "sysex5" (Nothing)
+(sysex6, sysex6_p) = pF "sysex6" (Nothing)
+(sysex7, sysex7_p) = pF "sysex7" (Nothing)
+(sysex8, sysex8_p) = pF "sysex8" (Nothing)
+(sysex9, sysex9_p) = pF "sysex9" (Nothing)
+(sysex10, sysex10_p) = pF "sysex10" (Nothing)
+
+cc ch v = ccn ch # ccv v
+mpan = cc 10
+rparam1 = cc 16
+rparam2 = cc 17
+rparam3 = cc 18
+rparam4 = cc 19
+rparam5 = cc 20
+rparam6 = cc 21
+rparam7 = cc 22
+rparam8 = cc 23
+rfatk = cc 70
+rfdcy = cc 71
+rfsus = cc 72
+rfrel = cc 73
+rffreq = cc 74
+rfq = cc 75
+rfmode = cc 76
+rfdepth = cc 77
+ratk = cc 78
+rhld = cc 79
+rdcy = cc 80
+rdrive = cc 81
+rdel = cc 82
+rrev = cc 83
+rlfofreq = cc 102
+rlfopow = cc 103
+rlfoio = cc 104
+rlfodest = cc 105
+rlfostrart = cc 106
+rlfomode = cc 107
+rlfodepth = cc 108
+fsysex v5 v6 v7 v8 v9 = midicmd "sysex"
+  # sysex1 0xf0
+  # sysex2 0x43
+  # sysex3 0x10
+  # sysex4 0x5e
+  # sysex5 v5
+  # sysex6 v6
+  # sysex7 v7
+  # sysex8 v8
+  # sysex9 v9
+  # sysex10 0xf7
+fvoiced ch op c v1 v2 = fsysex (0x60 + ch) op c v1 v2
+fosccoarse ch op v = fvoiced ch op 0x01 0x00 v
+foscfine ch op v = fvoiced ch op 0x02 0x00 v
+foscatk ch op v = fvoiced ch op 0x0a 0x00 v
+foscdcy ch op v = fvoiced ch op 0x0b 0x00 v
+foscenvlevel1 ch op v = fvoiced ch op 0x0c 0x00 v
+foscenvlevel2 ch op v = fvoiced ch op 0x0d 0x00 v
+foscenvlevel3 ch op v = fvoiced ch op 0x0e 0x00 v
+foscenvlevel4 ch op v = fvoiced ch op 0x0f 0x00 v
+foscenvtime1 ch op v = fvoiced ch op 0x10 0x00 v
+foscenvtime2 ch op v = fvoiced ch op 0x11 0x00 v
+foscenvtime3 ch op v = fvoiced ch op 0x12 0x00 v
+foscenvtime4 ch op v = fvoiced ch op 0x13 0x00 v
+foscenvscale ch op v = fvoiced ch op 0x15 0x00 v
+
+
+--- patterns
+
+do
+  hush
+  cps(90/120)
+  d1 $
+    spreadr fast (map (* 0.25) [1,2,3,4,5]) $
+    ssA 0.3 $
+    rr [3,5] $
+    zz [4,9] $
+    stack [ stack [
+              midichan "[0 ~ ~ 0 1 ~ 0 3,8*16?, 9]" # note "-24" # amp 1 # sustain 0.1
+              , n "128*16" # mpan (fast 1 $ choose [1..127]) # midichan 0
+              , n "128*16" # mpan (fast 2 $ choose [1..127]) # midichan 1
+              , n "128*16" # mpan (fast 3 $ choose [1..127]) # midichan 3
+              , n "128*16" # mpan (fast 4 $ choose [1..127]) # midichan 8
+              , n "128*16" # mpan (fast 5 $ choose [1..127]) # midichan 9
+              , n "128*16" # rdrive (fast 7 $ choose [0]) # midichan (choose [0,1,3,8,9])
+              ]  # s "rytm*8"
+          , stack [
+              rr [3,5] $ zz [7,13] $ note "{0,6,9,11}(14,16)" # midichan 3 |+| note (choose [0])
+                |+| note (choose [-36,-24]) # sustain (rand * 0.3 + 0.05) # amp 1
+              , n "128*64" # mpan (fast 7 $ choose [0..127]) # midichan 3
+              -- , n "128*64" # fosccoarse 3 (irand 8) (irand 0x1f)
+              -- , n "128*64" # foscfine 3 7 0
+              -- , n "128*64" # foscatk 3 (irand 8) 0
+              -- , n "128*64" # foscdcy 3 (irand 8) 50
+              -- , n "128*64" # (fast 20 $ foscenvlevel1 3 (irand 8) (scale 0x50 0x64 rand))
+              -- , n "128*64" # (fast 30 $ foscenvlevel2 3 (irand 8) (scale 0x20 0x30 rand))
+              -- , n "128*64" # (fast 40 $ foscenvlevel3 3 (irand 8) (irand 0x20))
+              -- , n "128*64" # (fast 50 $ foscenvlevel4 3 (irand 8) 0)
+              , n "128" # (fast 60 $ foscenvtime1 3 (irand 8) (scale 0 3 rand))
+              , n "128" # (fast 70 $ foscenvtime2 3 (irand 8) (scale 10 20 rand))
+              , n "128" # (fast 80 $ foscenvtime3 3 (irand 8) (scale 10 20 rand))
+              , n "128*64" # (fast 90 $ foscenvtime4 3 (irand 8) (scale 5 10 rand))
+              , n "128" # (fast 99 $ foscenvscale 3 (irand 8) (scale 0 7 rand))
+              ] # s "fs1r"
+          ]
+
+do
+  hush
+  d1 $
+    stack [ stack [
+              ssA 0.4 $ spreadr fast (map (* 3) [1,2,3,4,5,6,7,8]) $ midichan "{0/3?,1/4?,3/6?,8?,9/8?}" # amp 1
+              , n "128" # midichan 0 # rrev (choose [60..127]) # mpan 64
+              , n "128" # midichan 1 # rrev (choose [60..127]) # mpan 64
+              , n "128" # midichan 3 # rrev (choose [60..127]) # mpan 64
+              , n "128" # midichan 8 # rrev (choose [60..127]) # mpan 64
+              , n "128" # midichan 9 # rrev (choose [60..127]) # mpan 64
+              ] # note "-24" # s "rytm"
+          , stack [
+              midichan "0/3" # note (choose [0,3,7,11,13]) |+| note (choose [-48,-36,-24,-12,0,12,24]) # amp 1
+              , midichan "1?" # note (choose [0,3,7,11,13]) |+| note (choose [-48]) # sustain (rand * 30) # amp 1
+              ] # s "fs1r"
+          ]
