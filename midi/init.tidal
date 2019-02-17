@@ -1,0 +1,132 @@
+-- configure
+
+(midicmd, midicmd_p) = pS "midicmd" (Nothing)
+(midichan, midichan_p) = pF "midichan" (Nothing)
+(progNum, progNum_p) = pF "progNum" (Nothing)
+(val, val_p) = pF "val" (Nothing)
+(uid, uid_p) = pF "uid" (Nothing)
+(array, array_p) = pS "array" (Nothing)
+(frames, frames_p) = pF "frames" (Nothing)
+(seconds, seconds_p) = pF "seconds" (Nothing)
+(minutes, minutes_p) = pF "minutes" (Nothing)
+(hours, hours_p) = pF "hours" (Nothing)
+(frameRate, frameRate_p) = pF "frameRate" (Nothing)
+(songPtr, songPtr_p) = pF "songPtr" (Nothing)
+(ctlNum, ctlNum_p) = pF "ctlNum" (Nothing)
+(control, control_p) = pF "control" (Nothing)
+(amp, amp_p) = pF "amp" (Nothing)
+(sysex1, sysex1_p) = pF "sysex1" (Nothing)
+(sysex2, sysex2_p) = pF "sysex2" (Nothing)
+(sysex3, sysex3_p) = pF "sysex3" (Nothing)
+(sysex4, sysex4_p) = pF "sysex4" (Nothing)
+(sysex5, sysex5_p) = pF "sysex5" (Nothing)
+(sysex6, sysex6_p) = pF "sysex6" (Nothing)
+(sysex7, sysex7_p) = pF "sysex7" (Nothing)
+(sysex8, sysex8_p) = pF "sysex8" (Nothing)
+(sysex9, sysex9_p) = pF "sysex9" (Nothing)
+(sysex10, sysex10_p) = pF "sysex10" (Nothing)
+
+cc ch v = ccn ch # ccv v
+mpan = cc 10
+rparam1 = cc 16
+rparam2 = cc 17
+rparam3 = cc 18
+rparam4 = cc 19
+rparam5 = cc 20
+rparam6 = cc 21
+rparam7 = cc 22
+rparam8 = cc 23
+rfatk = cc 70
+rfdcy = cc 71
+rfsus = cc 72
+rfrel = cc 73
+rffreq = cc 74
+rfq = cc 75
+rfmode = cc 76
+rfdepth = cc 77
+ratk = cc 78
+rhld = cc 79
+rdcy = cc 80
+rdrive = cc 81
+rdel = cc 82
+rrev = cc 83
+rlfofreq = cc 102
+rlfopow = cc 103
+rlfoio = cc 104
+rlfodest = cc 105
+rlfostrart = cc 106
+rlfomode = cc 107
+rlfodepth = cc 108
+fsysex v5 v6 v7 v8 v9 = midicmd "sysex"
+  # sysex1 0xf0
+  # sysex2 0x43
+  # sysex3 0x10
+  # sysex4 0x5e
+  # sysex5 v5
+  # sysex6 v6
+  # sysex7 v7
+  # sysex8 v8
+  # sysex9 v9
+  # sysex10 0xf7
+fvoiced ch op c v1 v2 = fsysex (0x60 + ch) op c v1 v2
+fosccoarse ch op v = fvoiced ch op 0x01 0x00 v
+foscfine ch op v = fvoiced ch op 0x02 0x00 v
+foscatk ch op v = fvoiced ch op 0x0a 0x00 v
+foscdcy ch op v = fvoiced ch op 0x0b 0x00 v
+foscenvlevel1 ch op v = fvoiced ch op 0x0c 0x00 v
+foscenvlevel2 ch op v = fvoiced ch op 0x0d 0x00 v
+foscenvlevel3 ch op v = fvoiced ch op 0x0e 0x00 v
+foscenvlevel4 ch op v = fvoiced ch op 0x0f 0x00 v
+foscenvtime1 ch op v = fvoiced ch op 0x10 0x00 v
+foscenvtime2 ch op v = fvoiced ch op 0x11 0x00 v
+foscenvtime3 ch op v = fvoiced ch op 0x12 0x00 v
+foscenvtime4 ch op v = fvoiced ch op 0x13 0x00 v
+foscenvscale ch op v = fvoiced ch op 0x15 0x00 v
+
+rytm ch = midichan ch |+| note (-24) # amp 1 # s "rytm"
+fs1r ch = midichan ch # amp 1 # s "fs1r"
+nord ch = midichan ch # amp 1 # s "nord"
+rnote p1 o = note (choose p1) |+| note (choose (map (* 12) o))
+rsus min max = sustain (scale min max rand)
+susr xs = sustain (choose xs)
+fastr p xs = spreadr fast (map (* p) xs)
+zoomr p xs = spreadr ($) [zoom (0, x) | x <- xs]
+rotr p xs = spreadr (~>) xs
+chunkr xs f = spreadr ($) [chunk x (f) | x <- xs]
+nordvar ch v = nord ch # cc 70 (127/8*v)
+rscene v = rytm 16 # cc 92 v
+
+ss x s e = sometimesBy x (within (s, e) (spreadr ($) [(stut 6 0.7 0.125), (stut 4 0.7 0.25)]))
+ssA x = ss x 0 0.5
+ssB x = ss x 0.5 1
+
+rr xs = foldEvery xs (spreadr (<~) [0.125, 0.25, 0.5, 0.75])
+zz xs = foldEvery xs (zoom (0, 0.5))
+stutS n d = stut n 1 d
+ss x s e = sometimesBy x (within (s, e) (spreadr ($) [(stutS 3 0.25), (stutS 4 0.25)]))
+ssA x = ss x 0 0.5
+ssB x = ss x 0.5 1
+br r f = spreadr f [ x * r | x <- [1,2,3,4,5,6,7,8]] . sometimes (zoom (0,0.5))
+brF r = br r fast
+brS r =  br r slow
+db = degradeBy
+
+lsysP x n r s = p $ "{" ++ pat ++ "}%" ++ (show x)
+  where ds = ["~", "1"] ++ map (\x -> "1/" ++ (show x)) [2..16]
+        lsys = take 128 $ lindenmayer n r s
+        pat = intercalate " " (map (\x -> ds !! (Char.digitToInt x)) lsys)
+
+lsysN x n r s ns = p $ "{" ++ pat ++ "}%" ++ (show x)
+  where lsys = lindenmayer n r s
+        l = length ns
+        note x
+          | Char.isHexDigit x == True = show (ns !! (mod (Char.digitToInt x) l))
+          | otherwise = "~"
+        pat = intercalate " " (map (\x -> note x) lsys)
+
+lsysO x n r s = p $ "{" ++ pat ++ "}%" ++ (show x)
+  where lsys = lindenmayer n r s
+        oct x
+          | Char.isHexDigit x == True = show $ (Char.digitToInt x) * 12
+          | otherwise = "~"
+        pat = intercalate " " (map (\x -> oct x) lsys)
