@@ -1,0 +1,121 @@
+zzzTarget = OSCTarget {oName = "ZZZ",
+                       oAddress = "127.0.0.1",
+                       oPort = 12345,
+                       oPath = "/zzz",
+                       oShape = Nothing,
+                       oLatency = 0,
+                       oPreamble = [],
+                       oTimestamp = NoStamp
+                      }
+
+
+zzzConfig :: Config
+zzzConfig = Config {cCtrlListen = True,
+                     cCtrlAddr ="127.0.0.1",
+                     cCtrlPort = 6011,
+                     cFrameTimespan = 1/20,
+                     cTempoAddr = "127.0.0.1",
+                     cTempoPort = 9161,
+                     cTempoClientPort = 0 -- choose at random
+                   }
+
+
+-- params
+synth = grp [mS "synth", mF "n"]
+slew = pF "slew"
+cv = pF "cv"
+gate = pI "gate"
+mul = pF "mul"
+length = pF "length"
+offset = pF "offset"
+curve = pF "curve"
+gain = pF "gain"
+gate1 = gate
+length1 = length
+offset1 = offset
+curve1 = curve
+gain1 = gain
+attack2 = pF "attack2"
+decay2 = pF "decay2"
+offset2 = pF "offset2"
+curve2 = pF "curve2"
+gain2 = pF "gain2"
+gate2 = pI "gate2"
+a1 = attack
+d1 = decay
+i1 = gain
+o1 = offset
+a2 = attack2
+d2 = decay2
+i2 = gain2
+o2 = offset2
+sl = slew
+
+-- functions
+fastr p xs = spreadr fast (map (* p) xs)
+zoomr p xs = spreadr ($) [zoom (0, x) | x <- xs]
+rotr p xs = spreadr (~>) xs
+chunkr xs f = spreadr ($) [chunk x (f) | x <- xs]
+rr xs = foldEvery xs (spreadr (<~) [0.125, 0.25, 0.5, 0.75])
+zz xs = foldEvery xs (zoom (0, 0.5))
+stutS n d = stut n 1 d
+ss x s e = sometimesBy x (within (s, e) (spreadr ($) [(stutS 3 0.25), (stutS 4 0.25), (stutS 5 0.3)]))
+ssA x = ss x 0 0.5
+ssB x = ss x 0.5 1
+br r f = spreadr f [ x * r | x <- [1,2,3,4,5,6,7,8]] . sometimes (zoom (0,0.5))
+brF r = br r fast
+brS r =  br r slow
+db = degradeBy
+funcA a d g = a1 a # d1 d # gain1 g # gate1 1
+funcB a d g = a2 a # d2 d # gain2 g # gate2 1
+funcB' a d g o = funcB a d g # o2 o
+sr a b = range a b rand
+ssBy p n d = sometimesBy p $ stut n 1 d
+cs xs = (fast 16 $ choose xs)
+nc xs = note (cs xs)
+oc xs = note $ cs [x * 12 | x <- xs]
+no ns os = nc ns |+| oc os
+ra1 n x = a1 $ (11 <~) $ sr n x
+rd1 n x = d1 $ (22 <~) $ sr n x
+ri1 n x = i1 $ (33 <~) $ sr n x
+ro1 n x = o1 $ (44 <~) $ sr n x
+ra2 n x = a2 $ (55 <~) $ sr n x
+rd2 n x = d2 $ (66 <~) $ sr n x
+ri2 n x = i2 $ (77 <~) $ sr n x
+ro2 n x = o2 $ (88 <~) $ sr n x
+rsl n x = slew $ (99 <~)$ sr n x
+ba p = (101 <~) $ gate1 p # synth "ba"
+bd p = (102 <~) $ gate1 p # synth "bd"
+ch p = (103 <~) $ gate1 p # synth "ch"
+oh p = (104 <~) $ gate1 p # synth "oh"
+cp p = (105 <~) $ gate1 p # synth "cp"
+ak p = (106 <~) $ gate1 p # synth "at" # note 36 # d1 0.1
+th p = (107 <~) $ gate1 p # synth "th" # note 48 # d1 0.3
+bj p = (108 <~) $ gate1 p # synth "bj" # note 12 # d1 0.3
+li p = (108 <~) $ gate1 p # synth "li" # note 12 # d1 0.3
+ac p = (109 <~) $ gate1 p # synth "ac" # note 48 # a1 0.001 # d1 0.3 # i1 1 # a2 0.001 # d2 0.2 # i2 0.5 # gate2 p
+dp p = (110 <~) $ gate1 p # synth "dp" # note 24 # a1 0.001 # d1 0.3 # i1 1 # a2 0.001 # d2 0.2 # i2 0.5 # gate2 p
+pg p xs = synth "ph" # mul (choose xs)
+
+
+-- configures
+tidal <- startTidal zzzTarget zzzConfig
+
+let z = streamReplace tidal
+    s1 = z 1
+    s2 = z 2
+    s3 = z 3
+    s4 = z 4
+    s5 = z 5
+    s6 = z 6
+    s7 = z 7
+    s8 = z 8
+    s9 = z 9
+
+-- pattarn tests
+
+s1 $ fast 1.5 $ ba "1(9,16)"
+
+s1 $ synth "aa cc nord ad" # note "1 2 3" # cv 0.4 # gate 0 # attack 0.4 # decay 0.1 # attack2 0.1
+
+s1 $ silence
