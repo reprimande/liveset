@@ -7,8 +7,6 @@ zzzTarget = OSCTarget {oName = "ZZZ",
                        oPreamble = [],
                        oTimestamp = NoStamp
                       }
-
-
 zzzConfig :: Config
 zzzConfig = Config {cCtrlListen = True,
                      cCtrlAddr ="127.0.0.1",
@@ -50,7 +48,6 @@ d2 = decay2
 i2 = gain2
 o2 = offset2
 sl = slew
-
 -- functions
 fastr p xs = spreadr fast (map (* p) xs)
 zoomr p xs = spreadr ($) [zoom (0, x) | x <- xs]
@@ -96,6 +93,9 @@ li p = (108 <~) $ gate1 p # synth "li" # note 12 # d1 0.3
 ac p = (109 <~) $ gate1 p # synth "ac" # note 48 # a1 0.001 # d1 0.3 # i1 1 # a2 0.001 # d2 0.2 # i2 0.5 # gate2 p
 dp p = (110 <~) $ gate1 p # synth "dp" # note 24 # a1 0.001 # d1 0.3 # i1 1 # a2 0.001 # d2 0.2 # i2 0.5 # gate2 p
 pg p xs = synth "ph" # mul (choose xs)
+func1r as ds is = a1 (choose as) # d1 (choose ds) # i1 (choose is)
+func2r as ds is = a2 (choose as) # d2 (choose ds) # i2 (choose is)
+noter = no
 
 
 -- configures
