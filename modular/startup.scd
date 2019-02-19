@@ -10,7 +10,7 @@ s.waitForBoot{
 	OffsetOut.ar(ch, Lag.ar(DC.ar(1) * val, time));
   }).store;
 
-  SynthDef(\function, { | ch=14, attack=0.001, decay=0.2, curve=(-6), mul=1, t_trig=1, offset=0 |
+  SynthDef(\function, { | ch=14, attack=0.001, decay=0.2, curve=(-3), mul=1, t_trig=1, offset=0 |
 	var e, dc;
 	e = EnvGen.ar(Env.perc(attack, decay, mul, curve), gate: t_trig);
 	dc = DC.ar(1) * offset;
@@ -60,7 +60,7 @@ s.waitForBoot{
 	decay   = ~dictAt.value(params, \decay,   0);
 	gain    = ~dictAt.value(params, \gain,    0);
 	offset  = ~dictAt.value(params, \offset,  0);
-	curve   = ~dictAt.value(params, \curve,  -6);
+	curve   = ~dictAt.value(params, \curve,  -3);
 
 	trig2   = ~dictAt.value(params, \gate2,   0);
 	attack2 = ~dictAt.value(params, \attack2, 0);
@@ -122,7 +122,7 @@ s.waitForBoot{
 	ac: { |p| ~playSynthA.(p, 1, 2, 3); },
 
 	// params, noteCh, decayCh, gateCh, cvOffset
-	bj: { |p| ~playSynthB.(p, 2, 4, 2, 0.5) },
+	li: { |p| ~playSynthB.(p, 2, 4, 2, 0.5) },
 	at: { |p| ~playSynthB.(p, 4, 6, 4) },
 	th: { |p| ~playSynthB.(p, 5, 5, 5) },
 	ba: { |p| ~playSynthB.(p, 3, -1, 3) },
