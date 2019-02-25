@@ -1,0 +1,69 @@
+zzzTarget = OSCTarget {oName = "ZZZ",
+                       oAddress = "127.0.0.1",
+                       oPort = 12345,
+                       oPath = "/zzz",
+                       oShape = Nothing,
+                       oLatency = 0,
+                       oPreamble = [],
+                       oTimestamp = NoStamp
+                      }
+zzzConfig :: Config
+zzzConfig = Config {cCtrlListen = True,
+                     cCtrlAddr ="127.0.0.1",
+                     cCtrlPort = 6011,
+                     cFrameTimespan = 1/20,
+                     cTempoAddr = "127.0.0.1",
+                     cTempoPort = 9161,
+                     cTempoClientPort = 0 -- choose at random
+                   }
+
+
+-- params
+slew = pF "slew"
+cv = pF "cv"
+-- functions
+fastr p xs = spreadr fast (map (* p) xs)
+zoomr p xs = spreadr ($) [zoom (0, x) | x <- xs]
+rotr p xs = spreadr (~>) xs
+chunkr xs f = spreadr ($) [chunk x (f) | x <- xs]
+rr xs = foldEvery xs (spreadr (<~) [0.125, 0.25, 0.5, 0.75])
+zz xs = foldEvery xs (zoom (0, 0.5))
+stutS n d = stut n 1 d
+ss x s e = sometimesBy x (within (s, e) (spreadr ($) [(stutS 3 0.25), (stutS 4 0.25), (stutS 5 0.3)]))
+ssA x = ss x 0 0.5
+ssB x = ss x 0.5 1
+br r f = spreadr f [ x * r | x <- [1,2,3,4,5,6,7,8]] . sometimes (zoom (0,0.5))
+brF r = br r fast
+brS r =  br r slow
+db = degradeBy
+sr a b = range a b rand
+ssBy p n d = sometimesBy p $ stut n 1 d
+cs xs = (fast 16 $ choose xs)
+nc xs = note (cs xs)
+oc xs = note $ cs [x * 12 | x <- xs]
+no ns os = nc ns |+| oc os
+
+
+-- configures
+tidal <- startTidal zzzTarget zzzConfig
+
+let z = streamReplace tidal
+    s1 = z 1
+    s2 = z 2
+    s3 = z 3
+    s4 = z 4
+    s5 = z 5
+    s6 = z 6
+    s7 = z 7
+    s8 = z 8
+    s9 = z 9
+
+-- pattarn tests
+
+s1 $ ch "1" # cv "1.0"
+
+s1 $ fast 1.5 $ ba "1(9,16)"
+
+s1 $ synth "aa cc nord ad" # note "1 2 3" # cv 0.4 # gate 0 # attack 0.4 # decay 0.1 # attack2 0.1
+
+s1 $ silence
