@@ -25,7 +25,6 @@
 (sysex8, sysex8_p) = pF "sysex8" (Nothing)
 (sysex9, sysex9_p) = pF "sysex9" (Nothing)
 (sysex10, sysex10_p) = pF "sysex10" (Nothing)
-
 cc ch v = ccn ch # ccv v
 mpan = cc 10
 rparam1 = cc 16
@@ -82,7 +81,6 @@ foscenvtime2 ch op v = fvoiced ch op 0x11 0x00 v
 foscenvtime3 ch op v = fvoiced ch op 0x12 0x00 v
 foscenvtime4 ch op v = fvoiced ch op 0x13 0x00 v
 foscenvscale ch op v = fvoiced ch op 0x15 0x00 v
-
 rytm ch = midichan ch |+| note (-24) # amp 1 # s "rytm"
 fs1r ch = midichan ch # amp 1 # s "fs1r"
 nord ch = midichan ch # amp 1 # s "nord"
@@ -95,17 +93,13 @@ rotr p xs = spreadr (~>) xs
 chunkr xs f = spreadr ($) [chunk x (f) | x <- xs]
 nordvar ch v = nord ch # cc 70 (127/8*v)
 rscene v = rytm 16 # cc 92 v
-
+degr xs = spreadr (degradeBy) xs
 ss x s e = sometimesBy x (within (s, e) (spreadr ($) [(stut 6 0.7 0.125), (stut 4 0.7 0.25)]))
 ssA x = ss x 0 0.5
 ssB x = ss x 0.5 1
-
 rr xs = foldEvery xs (spreadr (<~) [0.125, 0.25, 0.5, 0.75])
 zz xs = foldEvery xs (zoom (0, 0.5))
 stutS n d = stut n 1 d
-ss x s e = sometimesBy x (within (s, e) (spreadr ($) [(stutS 3 0.25), (stutS 4 0.25)]))
-ssA x = ss x 0 0.5
-ssB x = ss x 0.5 1
 br r f = spreadr f [ x * r | x <- [1,2,3,4,5,6,7,8]] . sometimes (zoom (0,0.5))
 brF r = br r fast
 brS r =  br r slow
