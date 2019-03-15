@@ -1,6 +1,11 @@
 --- patterns
 
+hush
+
 cps(-1)
+
+do
+  d1 $ nord "7*8" # rnote [0] [5] # susr [5]
 
 do
   cps (78/120)
@@ -13,6 +18,7 @@ do
     stack [
     degradeBy 0.1 $ rytm "0 ~ 0 0 ~ 0 0 ~ 3 0 ~ 0 0 ~ 3 0"
     , ssA 0.8 $ rytm "8(14,16)"
+    , rytm "1(31,32)"
     , rytm "10(3,8)"
     , rytm "9(1,16)"
     , rotr 0.5 [0.5,0.75,0.25] $ nord (randcat ["2(12, 16)", "2(14, 16)"]) # rnote [-1,0,3] [-3] # susr [0.8..2]
@@ -24,22 +30,28 @@ do
     , rscene 1
     ] -- # nudge rand
 
+hush
+
 do
   cps(80/120)
   hush
   d1 $
-    ssA 0.2 $
-    degradeBy 0.6 $
+    ssA 0.3 $
+    degradeBy 0.8 $
     -- chunkr [2,3,4,6] (rev) $
-    fastr 0.5 [2,3] $
+    fastr 1 [1,2,3] $
     rotr 0.3 [0.3,0.6] $
+    -- zoomr 0.5 [0.5, 0.25, 0.125] $
     stack [
-    ssA 0.3 $ fastr 1 [1,2,3] $ degradeBy 0.2 $ rytm (randcat ["0(3,8)", "0*4", "0(5,8)", "0*6","3(6,8)", "3*3", "4*3", "4","7"])
-    , stutr $ rytm "8*8?"
-    , rytm "9*3?"
-    , ssA 0.1 $ fastr 0.125 [1,2,3] $ nord (randcat ["2(5,8)", "2(6,8)", "2(7,8)"]) # rnote [-2,0,3] [-3,-3,-4] # susr [0.1,3]
-    , fastr 0.25 [1,2,3,4,6] $ nord "3*16?" # rnote [0..11] [0..4] # susr [0.1..4]
-    , fastr 0.125 [1,2,3] $ nord "1*16?" # rnote [0..11] [-4..3] # susr [0.2..0.3]
+    ssA 0.8 $ fastr 1 [1,2,3] $ degradeBy 0.2 $ rytm (randcat ["0(3,8)", "0*4", "0(5,8)", "0*6","3(6,8)", "3*3", "4*3", "4","7"])
+    -- , rytm "8*8?"
+    -- , rytm "9*3?"
+    , ssA 0.1 $ fastr 0.25 [1,2,3] $ nord (randcat ["2(5,8)", "2(6,8)", "2(7,8)"]) # rnote [-2,0,3] [-3,-2] # susr [0.1..0.5]
+    , fastr 3 [1,2] $ nord "3*16?" # rnote [0..11] [4] # susr [0.1..0.2]
+    -- , fastr 0.5 [1,2,3] $ nord "1*16?" # rnote [0..11] [3] # susr [0.2..0.3]
+    -- , fastr 0.5 [2,3,4,5] $ nord "8(3,8)" # rnote [0] [5]# susr [0.5..0.8]
+    , degradeBy 0.2 $ fast 4 $ nord "7(7,8)" # rnote [0,3,6,11] [0]# susr [0.1..0.1]
+    , nord "8*32?" # rnote [0,80,128] [0]
     , nordvar 3 4
     , nordvar 2 1
     , nordvar 1 1
@@ -53,28 +65,38 @@ hush
 cps(-1)
 
 
+do
+  d1 $ stack [
+    fastr 1 [1,2,3] $ degradeBy 0.9 $ nord "8*3?" # (fast 8 $ rnote [0..11] [-4..3]) # (fast 6 $ susr [0.1..0.5])
+    , fastr 0.5 [1,2,3,4,5,6] $ nord "7(5,8)" # rnote [0] [-1,0] # (fast 4 $ susr [0.1..0.8])
+    ]
+
+hush
 
 do
   hush
   cps(160/120)
   d1 $
-    degradeBy 0.999 $
+    ssA 0.9 $
+    degradeBy 0.1 $
     fastr 0.5 [1,2,3,4,6] $
-    zoomr 0.3 [0.75, 1, 0.5, 0.25] $
+    zoomr 0.2 [0.75, 1, 0.5, 0.25,0.125] $
     stack [
-    ssA 0.6 $ degradeBy 0.5 $ rytm (randcat ["0*4", "0*2", "0*5", "0*3", "3", "3*2", "3*3", "4*2"])
-    , rytm $ randcat ["8*8", "8*10", "11*6"]
-    , fastr 1 [1,3] $ nord (randcat ["2", "2*3", "2*2", "2*4","2*6"]) # rnote [-1,0,3] [-3] # rsus 0.5 0.8
-    , nord "1*8?" # rnote [0,3,6] [-3..3] # rsus 0.3 3
-    , fastr 0.25 [1,2,3,4,5] $ (2 <~) $ nord "3*8?" # rnote [0] [-4..0] # rsus 0.4 0.8
-    , nord "7*8?" # rnote [0,3,7,11] [-4] # rsus 0.4 0.8
-    -- , nord "0/12" # note "{0,11,18,32,46}" |+| rnote [0,3,7] [-1,0,1] # susr [20..40] # amp 1
+    -- ssA 0.6 $ degradeBy 0.9 $ rytm (randcat ["0*4", "0*2", "0*5", "0*3", "3", "3*2", "3*3", "4*2"])
+    -- , rytm "0*17?"
+    -- degradeBy 0.9 $ rytm $ randcat ["8*8", "8*10", "11*6"]
+    -- fastr 1 [1,3] $ nord (randcat ["2", "2*3", "2*2", "2*4","2*6"]) # rnote [-1,0,3] [-3,-2] # rsus 0.5 0.8
+    -- , nord "1*8?" # rnote [0,3,6] [-3..3] # rsus 0.3 3
+    fastr 0.25 [1,2,3,4,5] $ (2 <~) $ nord "3*8?" # rnote [0] [-4..4] # rsus 0.1 0.3
+    , fast 1 $ nord "3*8?" # rnote [0,3,7,11] [0..3] # rsus 4 5
+    -- , nord "8*8?" # rnote [0,3,7,11] [4] # rsus 0.4 3
+    -- , nord "0(7,8)?" # note "{0,11,18,32,46}" |+| rnote [0,3,7] [2,3] # susr [0.01..0.02] # amp 0.2
     , nordvar 0 3
     , nordvar 1 1
-    , nordvar 2 2
+    , nordvar 2 1
     , nordvar 3 1
     , rscene 2
-    ] # nudge rand
+    ] -- # rnote [0..11] [3] # susr [4..8] # nudge rand 
 
 
 hush
