@@ -1,8 +1,3 @@
-MIDIClient.init;
-MIDIClient.list;
-~midiOut = MIDIOut.newByName("UX16", "UX16 MIDI 1");
-~midiOut.latency = 0.0;
-
 s.options.device = "SuperCollider";
 s.options.sampleRate = 44100;
 s.options.numBuffers = 32;
@@ -50,12 +45,6 @@ s.waitForBoot{
 	es3[panCh].set(\val, pan);
   };
 
-  var playGate = {|params, ch|
-	var gate, acc, pan;
-	gate = dictAt.value(params, \gate, 1);
-	es5[ch].set(\t_trig, gate);
-  };
-
   var playMG = {|params, mixCh, morphCh|
 	es3[mixCh].set(\val, dictAt.value(params, \mix,  0));
 	es3[morphCh].set(\val, dictAt.value(params, \morph,  0));
@@ -63,18 +52,17 @@ s.waitForBoot{
 
   var synths = (
 	// params, noteCh, decayCh, gateCh, panCh
-	dp: { |p| playSynthA.(p, 0, 1, 0, 0); },
+	dp: { |p| playSynthA.(p, 0, 1, 7, 0); },
 	at: { |p| playSynthA.(p, 2, 3, 5, 2); },
-	bd: { |p| playSynthA.(p, 4, 5, 1, 1) },
+	st: { |p| playSynthA.(p, 4, 5, 0, 1) },
 	bi: { |p| playSynthA.(p, 6, 7, 6, -1) },
 
 	// params, gateCh, panCh
-	// bd: { |p| playSynthB.(p, 1, 1) },
+	bd: { |p| playSynthB.(p, 1, 1) },
 	cp: { |p| playSynthB.(p, 2, 2) },
 	oh: { |p| playSynthB.(p, 3, 3) },
 	ch: { |p| playSynthB.(p, 4, 3) },
-	mg: { |p| playMG.(p, 4, 5)},
-	clock: { |p| playGate.(p, 7) },
+	mg: { |p| playMG.(p, 4, 5)}
   );
 
   var zzzOut = (play: { |dirtEvent|
@@ -91,7 +79,6 @@ s.waitForBoot{
   ~dirt = SuperDirt(2, s);
   ~dirt.start();
   ~dirt.soundLibrary.addSynth(\modular, zzzOut);
-  ~dirt.soundLibrary.addMIDI(\nord, ~midiOut);
 
   SynthDef(\function, { | ch=14, attack=0.001, decay=0.2, curve=(-6), mul=1, t_trig=1, offset=0 |
 	var e, dc;

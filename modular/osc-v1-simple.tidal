@@ -18,13 +18,20 @@ zzzConfig = Config {cCtrlListen = True,
                    }
 
 
+:t pS
+
 -- params
+synth = pS "synth"
 slew = pF "slew"
 cv = pF "cv"
+ch = pF "ch"
+length = pF "length"
+gate = pI "gate"
 -- functions
 fastr p xs = spreadr fast (map (* p) xs)
 zoomr p xs = spreadr ($) [zoom (0, x) | x <- xs]
 rotr p xs = spreadr (~>) xs
+degr xs = spreadr (degradeBy) xs
 chunkr xs f = spreadr ($) [chunk x (f) | x <- xs]
 rr xs = foldEvery xs (spreadr (<~) [0.125, 0.25, 0.5, 0.75])
 zz xs = foldEvery xs (zoom (0, 0.5))
@@ -47,6 +54,39 @@ no ns os = nc ns |+| oc os
 -- configures
 tidal <- startTidal zzzTarget zzzConfig
 
+
+let p = streamReplace tidal
+    hush = streamHush tidal
+    list = streamList tidal
+    mute = streamMute tidal
+    unmute = streamUnmute tidal
+    solo = streamSolo tidal
+    unsolo = streamUnsolo tidal
+    once = streamOnce tidal False
+    asap = streamOnce tidal True
+    nudgeAll = streamNudgeAll tidal
+    all = streamAll tidal
+    resetCycles = streamResetCycles tidal
+
+let setcps = asap . cps
+
+    xfade i = transition tidal (Sound.Tidal.Transition.xfadeIn 4) i
+    xfadeIn i t = transition tidal (Sound.Tidal.Transition.xfadeIn t) i
+    histpan i t = transition tidal (Sound.Tidal.Transition.histpan t) i
+    wait i t = transition tidal (Sound.Tidal.Transition.wait t) i
+    waitT i f t = transition tidal (Sound.Tidal.Transition.waitT f t) i
+    jump i = transition tidal (Sound.Tidal.Transition.jump) i
+    jumpIn i t = transition tidal (Sound.Tidal.Transition.jumpIn t) i
+    jumpIn' i t = transition tidal (Sound.Tidal.Transition.jumpIn' t) i
+    jumpMod i t = transition tidal (Sound.Tidal.Transition.jumpMod t) i
+    mortal i lifespan release = transition tidal (Sound.Tidal.Transition.mortal lifespan release) i
+    interpolate i = transition tidal (Sound.Tidal.Transition.interpolate) i
+    interpolateIn i t = transition tidal (Sound.Tidal.Transition.interpolateIn t) i
+    clutch i = transition tidal (Sound.Tidal.Transition.clutch) i
+    clutchIn i t = transition tidal (Sound.Tidal.Transition.clutchIn t) i
+    anticipate i = transition tidal (Sound.Tidal.Transition.anticipate) i
+    anticipateIn i t = transition tidal (Sound.Tidal.Transition.anticipateIn t) i
+
 let z = streamReplace tidal
     s1 = z 1
     s2 = z 2
@@ -60,10 +100,20 @@ let z = streamReplace tidal
 
 -- pattarn tests
 
-s1 $ ch "1" # cv "1.0"
+setcps(1)
+
+s1 $ silence
+
+s1 $ fast 1.4 $ ch "[5*16, 1*9]"
 
 s1 $ fast 1.5 $ ba "1(9,16)"
 
-s1 $ synth "aa cc nord ad" # note "1 2 3" # cv 0.4 # gate 0 # attack 0.4 # decay 0.1 # attack2 0.1
+s1 $ synth "a cc nord ad" # note "1 2 3" # cv 0.4 # gate 0 # attack 0.4 # decay 0.1 # attack2 0.1
 
 s1 $ silence
+
+d2 $ synth "bd(5,8)" # s "modular" # gate 1 # note (-40) # length 0.001
+
+d1 $ s "nord(6,8,2)" # midichan 3 # note (0) # sustain 0.1 # amp 1
+
+hush

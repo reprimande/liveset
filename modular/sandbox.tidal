@@ -1,0 +1,213 @@
+
+
+skel = globalF $ stack [ baF $ ba "" # baP
+                       , bdF $ bd "" # bdP
+                       , cpF $ cp "" # cpP
+                       , ohF $ oh "" # ohP
+                       , chF $ ch "" # chP
+                       , akF $ ak "" # akP
+                       , acF $ ac "" # acP
+                       , dpF $ dp "" # dpP
+                       , thF $ th "" # thP
+                       ] # globalP
+
+hush'
+
+lindenmayer 2 "[1,2]" "1 1 2 1"
+
+
+
+:t gain
+
+
+intercalate " " (chunkOf 1 "hoge")
+
+
+
+:t p
+
+intersperse ' ' "hoge"
+
+
+lsysS n l s = p(intersperse ' ' (lindenmayer 8 "0:2,1:0~,~:0,2:1" "1010"))
+
+lsysS n l s = p("{" ++ intersperse ' ' (lindenmayer n l s) ++ "}%16")
+
+lsysS 8 "0:2,1:0~,~:0,2:1" "1010"
+
+
+hush
+
+d1 $ degradeBy 0 $ slow 8 $ s (step' ["gabba", "cp", "rave2"] (lindenmayer 16 "0:2,1:0-,-:0,2:1" "1010")) # n (choose [0,1]) # cut (choose [0,1])
+
+
+
+
+import Data.Char (digitToInt)
+
+lindenmayerI n r s = fmap fromIntegral $ fmap digitToInt $ lindenmayer n r s
+
+lindenmayerI 8 "1:01, 0:110, ~:001" "1010"
+
+
+
+ss x s e = sometimesBy x (within (s, e) (spreadr ($) [(stutS 3 0.125), (stutS 4 0.25), (stutS 5 0.3)]))
+ssA x = ss x 0 0.5
+ssB x = ss x 0.5 1
+
+
+cps (90/120)
+
+s1 $ rr [3,5,7] $ stack [
+  dp (lsysS 3 "1:1~,~:1~11~" "1~11")
+  # note ((lsysS 2 "0:03,3:630,6:309,9:336" "039")) |+| oc [0] # ra1 0.001 0.003 # rd1 0.4 30 # ra2 0.001 0.002 # rd2 0.1 30 # ri2 0.2 0.8
+  , ssA 0.3 $ bd (lsysS 3 "1:11~~~~1~~, ~:~~~1~1" "11")
+  , ssA 0.8 $ ch (lsysS 3 "1:11~1, ~:~1~111" "11~")
+  , oh "1"
+  ]
+
+
+s1 $ dp (lsysS 3 "1:~1~, ~:11~" "1001") # rd1 10 30 # ri2 0 0 # no [0,1] [0..12]
+
+:t Scales
+
+hush
+
+s1 $
+  -- spreadr fast (map (*0.25) [1,2,3,4,5,6,7,8,9,10,11,12,13]) $
+  stack [
+  dp "{1 ~ ~ 1 1 ~}%8"
+  # note "0" |+| oc [0] # ra1 0.001 0.3 # rd2 0.8 10 # ra2 0.001 0.004 # rd2 0.01 0.3 # ri2 0.1 2
+  , ssA 0.3 $ bd "{1 ~ ~ 1 ~ 1 ~ ~}%8"
+  , ssA 0.7 $ ch "1*8?"
+  ]
+
+
+s1 $
+  degradeBy 0 $
+  synth (step' ["bd", "bd", "oh"] (lindenmayer 2 "0:2,1:0-,-:0,2:1" "1010"))
+  # gate 1
+  # ra1 0.001 0.3 # rd1 0.8 0.9 # ra2 0.01 0.9 # rd2 0.3 0.9 # ri2 0.3 2
+  # nc [0..60]
+  # cut (choose [0,1])
+
+hush
+
+envSL x i = ra1 0.001 0.003 # rd1 x (x*10) # ra2 0.001 0.004 # rd2 x (x*10) # ri2 i (10*i)
+
+do
+  s1 $
+    -- degradeBy 0.8 $
+    slow 2 $
+    stack [ fast 2 $ dp (lsysS 4 "1:~~1~,~:11" "1~~1~1") # no [0,3,9] [3] # envSL 0.2 0.1,
+            ba (lsysS 2 "1:1~1,~:1~~1" "1~11") ]
+
+
+
+ur 2 (synth "ba") []
+
+
+scaleSieve 8 (3@@1) "0 1 2 1"
+
+:t take
+
+hush
+
+d1 $ gain lsysS # s "arpy" # u
+
+(scaleSieve 8 (3@@1) "0 1 2 1")
+
+
+:t stepSieve 2 "1 2 3 4" (3@@1)
+
+
+  (3#&&#2)
+
+:t gain "1 ~ 1 ~"
+
+:t gain
+
+:t step
+
+:t p
+
+fmap p (step' ["1", "~"] (lindenmayer 8 "0:1,1:1-,-:0" "0100"))
+
+fmap p 
+
+gain p(step' ["1", "0"] (lindenmayer 8 "0:1,1:1-,-:0" "0100"))
+
+step' [1, 0] (lindenmayer 8 "0:1,1:1-,-:0" "0100") # s "bd"
+
+step "1 0" (lindenmayer 8 "0:1,1:1-,-:0" "0100")
+
+d1 $ degradeBy rnd $ slow 8 $ s $ step' ["bd", "cp", "sn:2"] (lindenmayer 8 "0:1,1:1-,-:0" "1101")
+
+
+hush
+
+:t step
+
+:t step'
+
+import System.Random
+
+
+:t drop
+
+gen0
+
+gen0 <- newStdGen
+
+:t rnd
+
+import GHC.Base
+
+
+rnd = do d <- (getStdRandom $ randomR (0,1) :: IO Double)
+         x =<< d
+         return x
+
+
+rnd = do gen <- newStdGen
+         return randomR (0,1) gen
+
+
+:t rnd
+
+rnd' = do gen <- newStdGen
+          let (r, _) = randomR (0,1) gen :: (Double, StdGen)
+          return r
+
+
+let (IO d) = (getStdRandom $ randomR (0,1) :: IO Double)
+
+
+:t mkSeed
+
+let (IO a) = print "a"
+
+:t IO Double
+
+:t rnd
+
+
+
+rnd n = fst $ randomR (0, n - 1) (mkStdGen n)
+
+
+read
+
+:t randomR
+
+randomR (0, 10)
+
+
+:t fst
+
+:t rnd
+
+hush
+
+
+

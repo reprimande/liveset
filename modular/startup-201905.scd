@@ -1,6 +1,11 @@
 MIDIClient.init;
 MIDIClient.list;
-~midiOut = MIDIOut.newByName("UX16", "UX16 MIDI 1");
+// ~midiOut = MIDIOut.newByName("UX16", "UX16 MIDI 1");
+
+// MIDI Out connection for Linux
+~midiOut = MIDIOut(0);
+~midiOut.connect(1);
+
 ~midiOut.latency = 0.0;
 
 s.options.device = "SuperCollider";
@@ -28,53 +33,39 @@ s.waitForBoot{
 	Synth(\es5, [\ch, 8 + 6, \val, ch2val.(i)])
   });
 
-  var playSynthA = {|params, noteCh, decayCh, gateCh, panCh, cvOffset=1|
-	var note, decay, slew, trig, acc, pan;
+  var playSynthA = {|params, noteCh, decayCh, gateCh, cvOffset=1|
+	var note, decay, slew, trig, acc;
 	note  = dictAt.value(params, \note,  0);
 	slew  = dictAt.value(params, \slew,  0);
-	trig  = dictAt.value(params, \gate,  1);
-	decay = dictAt.value(params, \sustain, 0.2) * cvOffset;
-	pan = dictAt.value(params, \pan, 0.5) * cvOffset;
+	trig  = dictAt.value(params, \gate,  0);
+	decay = dictAt.value(params, \decay, 0.2) * cvOffset;
 
 	es8[noteCh].set(\val, n2cv.(note), \time, slew);
 	es8[decayCh].set(\val, decay);
 	es5[gateCh].set(\t_trig, trig, \time, 0.003);
-	es3[panCh].set(\val, pan);
   };
 
-  var playSynthB = {|params, ch, panCh|
-	var gate, acc, pan;
-	gate = dictAt.value(params, \gate, 1);
-	pan = dictAt.value(params, \pan, 0.5);
-	es5[ch].set(\t_trig, gate);
-	es3[panCh].set(\val, pan);
-  };
-
-  var playGate = {|params, ch|
-	var gate, acc, pan;
-	gate = dictAt.value(params, \gate, 1);
+  var playSynthB = {|params, ch|
+	var gate, acc;
+	gate = dictAt.value(params, \gate, 0);
 	es5[ch].set(\t_trig, gate);
   };
 
-  var playMG = {|params, mixCh, morphCh|
-	es3[mixCh].set(\val, dictAt.value(params, \mix,  0));
-	es3[morphCh].set(\val, dictAt.value(params, \morph,  0));
+  var sendCv = {|params, ch|
+	es8[ch].set(\val, dictAt.value(params, \mul,  0));
   };
 
   var synths = (
-	// params, noteCh, decayCh, gateCh, panCh
-	dp: { |p| playSynthA.(p, 0, 1, 0, 0); },
-	at: { |p| playSynthA.(p, 2, 3, 5, 2); },
-	bd: { |p| playSynthA.(p, 4, 5, 1, 1) },
-	bi: { |p| playSynthA.(p, 6, 7, 6, -1) },
-
-	// params, gateCh, panCh
-	// bd: { |p| playSynthB.(p, 1, 1) },
-	cp: { |p| playSynthB.(p, 2, 2) },
-	oh: { |p| playSynthB.(p, 3, 3) },
-	ch: { |p| playSynthB.(p, 4, 3) },
-	mg: { |p| playMG.(p, 4, 5)},
-	clock: { |p| playGate.(p, 7) },
+	// params, noteCh, env1Ch, env2Ch
+	dp: { |p| playSynthA.(p, 0, 1, 7); },
+	at: { |p| playSynthA.(p, 2, 3, 6); },
+	st: { |p| playSynthA.(p, 4, 5, 0) },
+	sr: { |p| playSynthA.(p, 6, 7, 5) },
+	bd: { |p| playSynthB.(p, 1) },
+	cp: { |p| playSynthB.(p, 2) },
+	oh: { |p| playSynthB.(p, 3) },
+	ch: { |p| playSynthB.(p, 4) },
+	mg: { |p| sendCv.(p, 7)}
   );
 
   var zzzOut = (play: { |dirtEvent|
@@ -87,11 +78,6 @@ s.waitForBoot{
 	});
 	true
   });
-
-  ~dirt = SuperDirt(2, s);
-  ~dirt.start();
-  ~dirt.soundLibrary.addSynth(\modular, zzzOut);
-  ~dirt.soundLibrary.addMIDI(\nord, ~midiOut);
 
   SynthDef(\function, { | ch=14, attack=0.001, decay=0.2, curve=(-6), mul=1, t_trig=1, offset=0 |
 	var e, dc;
@@ -109,4 +95,9 @@ s.waitForBoot{
 	e = EnvGen.ar(Env([0, 1, 1, 0], [0, time, 0], curve: \exp), gate: t_trig);
 	OffsetOut.ar(ch, e * val);
   }).add;
+
+  ~dirt = SuperDirt(2, s);
+  ~dirt.start();
+  ~dirt.soundLibrary.addSynth(\modular, zzzOut);
+  ~dirt.soundLibrary.addMIDI(\nord, ~midiOut);
 };

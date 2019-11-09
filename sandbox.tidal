@@ -1,3 +1,6 @@
+hush
+
+d1 $ s "bd hh hh hh sn:2" # nudge 0.17
 
 let (a, a_p) = pF "a" (Just 0.001)
     (r1, r1_p) = pF "r1" (Just 0.001)
@@ -39,6 +42,7 @@ let tsdelay = make' VF tsdelay_p
 
 d1 $ sound "can*4" # tsdelay "0 0.25 0.5 0.75 1" # xsdelay "3 124 3 12 62 2"
 
+hush
 
 d1 $ s "bd*3"
 
@@ -112,12 +116,12 @@ hush
 
 d2 $
   -- spreadr slow [6,7,8,9,10] $
-  spreadr fast (map (*2) [1,2,3,4,5,6]) $
+  spreadr fast (map (*0.5) [1,2,3,4,5,6]) $
   s "hn*8?"
-  # n (choose [1,60,70])
+  # n (choose [1..70])
   # v1 (fast 6 $ scale 0.2 3 rand)
   # v2 (fast 7 $ scale 0.1 3 rand)
-  # sustain (rand*0.1)
+  # sustain (rand*0.8)
   # gain 0.7
   # pan rand
   # cut 2
@@ -216,9 +220,9 @@ d1 $
   , s "hh*8?"
   ] # shape 0.2
 
-d2 $ sometimesBy 0.4 (stut 3 0.9 0.125) $ sometimes (0.5 ~>) $ s "hv(11,16,{0,1})" # n "{0,3,7}" |+| n "0 3 -3 8 11 14 15" # sustain (rand * 0.2 + 0.05)
+d2 $ sometimesBy 0.4 (stut 4 0.9 0.25) $ sometimes (0.5 ~>) $ s "hv(3,16,{0,1})" # n "{0,3,6,9}" |+| n "0 4 3 7" # sustain (rand * 0.1 + 0.05) # shape 0.8
 
-d2 $ s "hv(3,8)" # n "-12 0 6" # sustain 0.6 # cut 1
+d2 $ s "hv(3,8)" # n "-12 0 6" # sustain 0.6 # shape 0.8 # cut 1
 
 hush
 
@@ -235,7 +239,421 @@ d1 $ spreadr fast [0.25,0.5,1,2,3,4,5] $ sometimes (stut 3 0.9 0.25) $ s "{hv*7?
 d1 $ spreadr fast [0.25,0.5,1,2,3,4,5] $ sometimes (stut 3 0.9 0.25) $ s "{st1*3?,hv*7?, kick*8?}" # n (choose ([0,12,24,36,48,60])) # pan rand # sustain (rand*3) # nudge rand # cut (choose [1])
 
 
-d1 $ spreadr slow [2,3,4,5] $ spreadr fast [1,2,3,4,5,6,7] $ sometimes (stut 3 0.9 0.25) $ s "{st1*8?,pm5*6?, kick*5?}" # n (choose [-36, -24,-16,-12,12,24,80]) # k (fast 2 $ (rand+0.5)) # shape rand  # sustain (rand*3)# nudge rand # pan (rand) # a (rand*0.1) # cut (choose[1,2,3])
+d1 $ spreadr slow [5,8] $ spreadr fast [1,2,3] $ sometimes (stut 4 0.9 0.125) $ s "{st1*8?,pm5*6?, kick*5?}" # n (choose [-36, -24,-16,-12,12,24,80]) # k (fast 2 $ (rand+0.5)) # shape rand  # sustain (rand*3)# nudge rand # pan (rand) # a (rand*0.00001)# cut (choose[1,2,3])
 
 
 hush
+
+
+Just 3 >>= \x -> Just (x + 3)
+
+[1,2] >>= \n -> ['a', 'b'] >>= \c -> return (n, c)
+
+d1 $ sometimesBy 0.4 (stut 3 0.9 0.25) $ sometimesBy 0.2 (stut 4 0.8 0.25) $ degradeBy 0.3 $ foldEvery [3,7] (0.5 <~) $ slow 16 $ s (step' ["gabba", "pm5", "st1", "hv"] (lindenmayer 8 "1:2,0:31-,-:2,2:0,3:03" "0120")) # n (choose [-12,-11,-7,0,3,6,13,16,18,22]) # shape rand # pan rand # cut (choose [0]) # sustain (rand * 0.3)
+
+
+
+
+
+hush
+
+
+
+
+:t (p "1 2")
+
+:t gain
+
+:t atom
+
+:t Char
+
+
+z = ["1", "1/2", "1/3"]
+
+:t foldr
+
+
+d1 $ gain (lsysP 5 4 "0:43,1:321,2:14,3:74,4:6,5:8" "13107") # s "bd"
+
+
+
+
+(lindenmayer 3 "1:2,0:31,2:0,3:03" "0120")
+
+(step' ["gabba", "pm5", "st1", "hv"] (lindenmayer 8 "1:2,0:31-,-:2,2:0,3:03" "0120"))
+
+step' ["bd", "sn", "cp"] (lindenmayer 1 "0:12,1:10,2:12" "012")
+
+
+
+(step' ["1", "1/2", "1/3", "1/4", "1/5", "1/6", "1/7", "1/8"] (lindenmayer 8 "0:23,1:12,2:53,3:52,4:67,5:76,6:34,7:31" "03")) >>= p
+
+((step' ["~", "1"] (lindenmayer 1 "0:0001,1:01" "1")) >>= p)
+
+p "1 1"
+
+do
+  let pat = p "1 1/2 1 1/3"
+  d1 $ gain pat # s "bd"
+
+
+hush
+
+
+Char.digitToInt 'a'
+
+
+
+d1 $ ur 8 "[ch1 ch1:double ch2 ch2 ch2, mel1:half mel2:double]"
+  [("ch1",  n "[c2, g2] [c2, g2]"   # s "superpiano"),
+   ("ch2",  n "[fs3, as3] [c3, g3]" # s "superpiano"),
+   ("mel1", n "a5 g5 c6 a5 g5 d6"   # s "superpiano"),
+   ("mel2", n "c4 c5 g4 g5"         # s "superpiano")]
+  [("double", fast 2), ("half", slow 2)]
+
+
+import qualified Data.Char as Char
+
+lsysP x n r s = p $ "{" ++ pat ++ "}%" ++ (show x)
+  where ds = ["~", "1"] ++ map (\x -> "1/" ++ (show x)) [2..16]
+        lsys = lindenmayer n r s
+        pat = intercalate " " (map (\x -> ds !! (Char.digitToInt x)) lsys)
+
+
+Char.isHexDigit 'g'
+
+Char.digitToInt 'f'
+
+lsysN x n r s ns = p $ "{" ++ pat ++ "}%" ++ (show x)
+  where lsys = lindenmayer n r s
+        l = length ns
+        note x
+          | Char.isHexDigit x == True = show (ns !! (mod (Char.digitToInt x) l))
+          | otherwise = "~"
+        pat = intercalate " " (map (\x -> note x) lsys)
+
+
+lsysO x n r s = p $ "{" ++ pat ++ "}%" ++ (show x)
+  where lsys = lindenmayer n r s
+        oct x
+          | Char.isHexDigit x == True = show $ (Char.digitToInt x) * 12
+          | otherwise = "~"
+        pat = intercalate " " (map (\x -> oct x) lsys)
+
+
+d1 $ sometimesBy 0.4 (gap 4) $ s "arpy*8" # up (lsysN 8 4 "0:012,1:1324,2:31,3:13,4:321" "1012" Scales.diminished2) |+| up (lsysO 8 8 "0:001,1:102,2:10" "0021") |-| up (-24)
+
+
+:t gap
+
+
+lsysN 8 2 "0:02-1,1:1-32,2:31,3:13,-:0123" "012" [0,3,6,11]
+
+
+hush
+
+:t silence
+
+[1,2,3] !! 3
+
+(mod 7 6)
+
+do
+  let pat1 = lsysP 6 8 "0:043,1:13224,2:2431,3:74,4:6,5:3,6:91,7:57,8:3,9:37" "134"
+      pat2 = lsysP 7 4 "a:b,b:bc,c:ab,d:ae,e:ae,f:bcd" "fadcf"
+      ss1 = sometimesBy 0.4 (within (0, 0.5) (stut 4 0.2 0.375))
+      ss2 = sometimesBy 0.2 (within (0.5, 1) (stut 4 0.5 0.25))
+      fr = spreadr fast [x * 0.3 | x <- [1,2,3,4]]
+      sr = spreadr slow [x * 0.25 | x <- [4,5,6,7]]
+      pat = ur 8 "[p1 p1 p2:fr p1 p2 p1:sr p1 p2]" [("p1", pat1), ("p2", pat2)] [("fr", fr), ("sr", sr)]
+      ror = spreadr (<~) (map (* 0.125) [0,1,2,3,4,5,6,7,8])
+      roh = (0.5 ~>)
+  d1 $
+    stack [ ror $ gain pat # s "bd" # up (-8) # shape 0.9
+          , ror $ slow 16 $ roh $ gain pat # s "cp" # up (choose [(-12)..0])
+          , ror $ slow 20 $ gain pat # s "padlong" # up "{0,3,6,11}" |-| up (choose [12,15,18,24]) |*| gain 0.7
+          , fast 4 $ ror $ gain pat # s (choose ["pmc", "glitch2", "sawc", "noise2"]) # n (irand 16) # up (irand 24) # shape 0.7 # pan rand
+          ]
+
+
+hush
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+do
+  cps(75/120)
+  let pat1 = lsysP 8 8 "1:1002,2:201,0:012" "112"
+      patn = lsysN 14 3 "0:012,1:1324,2:31,3:13,4:321" "1012" Scales.major
+      pato = lsysO 8 3 "0:0102,1:1023,2:13,3:244541,4:321,5:442" "03"
+      ns = n patn |+| n pato |-| n 24
+  d1 $ stack [ sometimesBy 0.3 (stut 4 0.6 0.25) $ gain pat1 # s "bd" # up (-8) # shape 0.9
+             , (0.25 ~>) $ slow 8 $ gain pat1 # s "cp" # shape 0.6
+             , fast 2 $ gain pat1 # s "hc" # up 3 # shape 0.2 # pan (rand)
+             , gain "1" # s "ho" # up 3 # shape 0.2
+             , slow 1.5 $ gain pat1 # s "bass" # up patn # shape 0.9
+             , off 0.25 (|+| n 4) $ off 0.5 (|+| n 2) $
+               sometimes rev $ fast 2 $ gain pat1 # s "superpiano" # ns
+             ]
+
+
+
+
+cps(160/120)
+
+d1 $ sometimesBy 0.8 (stut 6 0.8 0.125) $ s "pmc*8?" # n (choose [0,3,7,9]) |+| n (choose (map (*12) [-6,-5,-4,0,1,2]))# sustain ((rand*5) + 0.5) # cut (choose [1,2,3])# pan rand
+
+
+
+
+d1 $ s "{kick(11,16)?, phh*16?, pmc(11,16,3)}"
+
+d1 $ stack [
+  gain "1 ~ ~ 1 ~ ~ 1 ~" # s "kik"
+  , gain "~ ~ ~ ~ 1 ~ ~ 1" # s "snr"
+  , gain "1*8" # s "nh"
+  ]
+
+
+hush
+
+:t ur
+
+ur 0 (s "hh") [(s "bd"), (s "cp")]
+
+(step' [1, 2, 3] (lindenmayer 8 "1:2,0:01-,-:2,2:0" "012"))
+
+:t up
+
+
+:t gain
+
+hush
+
+d1 $ s "kick"
+
+:t gain ""
+
+:t ParamPattern
+
+:t lindenmayer
+
+:t step'
+
+
+:t s
+
+:t fast
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import System.Random
+
+
+gen0
+
+gen0 <- newStdGen
+
+:t rnd
+
+import GHC.Base
+
+
+rnd = do d <- (getStdRandom $ randomR (0,1) :: IO Double)
+         x =<< d
+         return x
+
+
+rnd = do gen <- newStdGen
+         return randomR (0,1) gen
+
+
+:t rnd
+
+rnd' = do gen <- newStdGen
+          let (r, _) = randomR (0,1) gen :: (Double, StdGen)
+          return r
+
+
+let (IO d) = (getStdRandom $ randomR (0,1) :: IO Double)
+
+
+:t mkSeed
+
+let (IO a) = print "a"
+
+:t IO Double
+
+:t rnd
+
+
+
+rnd n = fst $ randomR (0, n - 1) (mkStdGen n)
+
+
+read
+
+:t randomR
+
+randomR (0, 10)
+
+
+:t fst
+
+:t rnd
+
+timedValues (s "bd")
+
+hush
+
+timedValues $ gain "1 0/6 3/1 1/2 1/4 1 2/1 0/3" # s "bd"
+
+:t timedValues
+
+split 2 "1 2 4"
+
+d1 $
+fast 1.3 $
+stack [
+within (0, 0.3) (sounc "bd") $ gain ("1 1/3 1 1/4 1/3 1/5 1 1/3") # s (choose ["sn:2", "bd", "bd:2"]),
+gain ("0 0 0 0 1 1 1 1") # s (choose ["rave2"]) # up (irand 12)
+]
+
+
+d1 $ interlace (sound  "bd sn kurt") (every 3 rev $ sound  "cp hh")
+
+
+hush
+
+:t within
+
+:t unwrap
+
+d1 $ s "bd sn" # speed "0.8" *** [speed "3", crush "4"]
+
+d1 $ s "sn:2"
+
+
+fill "bd" "cp ~ cp"
+
+hush
+
+
+cps 1
+
+d2 $ ssB 0.3 $ s "[kick(3,8), hh1*8]" # shape 0.99
+
+
+d1 $ sometimesBy 0.3 rev $ s "bs(5,8)" # note "0 3 0 6 11" |+| note (choose [-36,-24]) # sustain (scale 0.05 0.8 rand) # cut 1
+
+
+d3 $ slow 2 $ s "fb01?" # sustain 10 # cut 2
+
+
+d4 $ s "p1" # note "[0,4,7],11" |+| note 0 # sustain 1 # room 0.9 # size 0.9
+
+
+
+gain = make' VF gain_p
+gain_p = F "gain" (Just 1)
+
+
+tsdelay :: Pattern Double -> ParamPattern
+tsdelay = make' VF tsdelay_p
+tsdelay_p = F "tsdelay" Nothing
+xsdelay :: Pattern Int -> ParamPattern
+xsdelay = make' VI xsdelay_p
+xsdelay_p = I "xsdelay" Nothing
+binscr :: Pattern Double -> ParamPattern
+binscr = make' VF binscr_p
+binscr_p = F "binscr" (Just 0)
+binfrz :: Pattern Double -> ParamPattern
+binfrz = make' VF binfrz_p
+binfrz_p = F "binfrz" (Just 0)
+binshf :: Pattern Double -> ParamPattern
+binshf = make' VF binshf_p
+binshf_p = F "binshf" (Just 0)
+binsmr :: Pattern Double -> ParamPattern
+binsmr = make' VF binsmr_p
+binsmr_p = F "binsmr" (Just 0)
+brick :: Pattern Double -> ParamPattern
+brick = make' VF brick_p
+brick_p = F "brick" (Just 0)
+dist :: Pattern Double -> ParamPattern
+dist = make' VF dist_p
+dist_p = F "dist" (Just 0)
+wah :: Pattern Double -> ParamPattern
+wah = make' VF wah_p
+wah_p = F "wah" (Just 0.25)
+conv :: Pattern Double -> ParamPattern
+conv = make' VF conv_p
+conv_p = F "conv" (Just 0) 
+convn :: Pattern Double -> ParamPattern
+convn = make' VF convn_p
+convn_p = F "convn" (Just 0) 
+convp :: Pattern Double -> ParamPattern
+convp = make' VF convp_p
+convp_p = F "convp" (Just 0) 
+modl :: Pattern Double -> ParamPattern
+modl = make' VF modl_p
+modl_p = F "mod" (Just 0)
+henon :: Pattern Double -> ParamPattern
+henon = make' VF henon_p
+henon_p = F "henon" (Just 0)
+flangefq :: Pattern Double -> ParamPattern
+flangefq = make' VF flangefq_p
+flangefq_p = F "flangefq" (Just 0)
+flangefb :: Pattern Double -> ParamPattern
+flangefb = make' VF flangefb_p
+flangefb_p = F "flangefb" (Just 0)
+pipe :: Pattern Int -> ParamPattern
+pipe = make' VI pipe_p
+pipe_p = I "pipe" (Just 0)
+
+slowPanS n = pan (slow n $ scale 0.2 0.8 sine1)
+slowPanR n = pan (slow n $ scale 0.2 0.8 rand)
+panR = pan (scale 0.2 0.8 $ rand)
+binshfR = binshf (choose [0,0,0, 0.75, 0.3, 1])
+binshfS n = binshf (slow n $ scale 0.0 0.7 sine1)
+binfrzR = binfrz (choose [0,0,0,0,0, 0.75, 0.3, 1, 1])
+slowSpeedR n = speed (slow n $ choose [1,1,1,1, 0.6666, 0.5, 2, -0.75, 4])
+slowWahR n = wah (slow n $ choose [0,0,0,0,0, 0.1, 0.2, 0.5])
+
+mNudge = nudge "[0 0.083 0.025]*3"
+disv n l = unit "s" |+| loop l |+| accelerate n
+
+mfDel p = delayt (density "<0.3 1 0.5 2>" (scale 1.0e-4 0.05 $ saw1)) |+| delay (slow 2 (scale 0.1 0.8 $ saw1)) |+| delayfb p
+
+flange f b = flangefq f |+| flangefb b
+flangeD = flange (density 0.75 $ "{0.5 0.0 1.2 1.4 0.8}%7") "{0.8 0.6 0.7}%4"
+flangeL = flange (density 0.5 $ "{0.1 0.2 0.0 0.4 0.3}%7") "{0.0 0.4 0.0 0.3 0.1}%7"

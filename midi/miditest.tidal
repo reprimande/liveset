@@ -1,0 +1,342 @@
+import Sound.Tidal.MIDI.Context
+
+import Sound.Tidal.MIDI.CC
+
+displayOutputDevices >>= putStrLn
+
+devices <- midiDevices
+
+rytm <- midiStream devices "Elektron Analog Rytm MIDI 1" 1 synthController
+
+
+fs1r1 <- midiStream devices "MIDISPORT 2x2 Anniv MIDI 1" 1 synthController
+
+fs1r2 <- midiStream devices "MIDISPORT 2x2 Anniv MIDI 1" 2 synthController
+
+fs1r3 <- midiStream devices "MIDISPORT 2x2 Anniv MIDI 1" 3 synthController
+
+fs1r4 <- midiStream devices "MIDISPORT 2x2 Anniv MIDI 1" 4 synthController
+
+c1 <- midiStream devices "Elektron Analog Rytm MIDI 1" 1 ccallController
+
+rytm $ n "{0*16, 1*12?, 8*16?}" |-| n "60" # pan rand # dur (rand * 0.01) # velocity rand # cc17 rand
+
+
+
+do
+  rytm $ sometimesBy 0.4 rev $ spreadr fast [1,1.2,1.3,1.4,1.5] $ stack [n "0 ~ ~ 0 1 ~ [0*2] 3", n "[8*16?, 9]"] |-| n "60" # pan rand
+  fs1r3 $ spreadr slow [1,1.5,2] $ n "[0,1,3,6,9,11,15]*16?" |+| n (fast 16 $ choose [0]) # velocity ((rand * 0.8) + 0.2) # dur (rand *0.7)
+
+
+
+cps(130/120)
+
+rytm $ n "[0 ~ 0 ~ 1 3 ~ [0 0 0], 8*8, 9*3]" |-| n "60" # pan rand
+
+
+rytm $ n "0*8" |-| n 60 # pan sine
+
+rytm $ silence
+
+do
+  rytm $ silence
+  fs1r3 $ silence
+
+
+c1 $ n "0*8" |-| n 60 # cc10 sine
+
+
+:t cc10
+
+c1 $ silence
+
+rytm $ silence
+
+
+
+
+(cc0, cc0_p) = pF "cc0" (Just 0)
+(cc1, cc1_p) = pF "cc1" (Just 0)
+(cc2, cc2_p) = pF "cc2" (Just 0)
+(cc3, cc3_p) = pF "cc3" (Just 0)
+(cc4, cc4_p) = pF "cc4" (Just 0)
+(cc5, cc5_p) = pF "cc5" (Just 0)
+(cc6, cc6_p) = pF "cc6" (Just 0)
+(cc7, cc7_p) = pF "cc7" (Just 0)
+(cc8, cc8_p) = pF "cc8" (Just 0)
+(cc9, cc9_p) = pF "cc9" (Just 0)
+(cc10, cc10_p) = pF "cc10" (Just 0)
+(cc11, cc11_p) = pF "cc11" (Just 0)
+(cc12, cc12_p) = pF "cc12" (Just 0)
+(cc13, cc13_p) = pF "cc13" (Just 0)
+(cc14, cc14_p) = pF "cc14" (Just 0)
+(cc15, cc15_p) = pF "cc15" (Just 0)
+(cc16, cc16_p) = pF "cc16" (Just 0)
+(cc17, cc17_p) = pF "cc17" (Just 0)
+(cc18, cc18_p) = pF "cc18" (Just 0)
+(cc19, cc19_p) = pF "cc19" (Just 0)
+(cc20, cc20_p) = pF "cc20" (Just 0)
+(cc21, cc21_p) = pF "cc21" (Just 0)
+(cc22, cc22_p) = pF "cc22" (Just 0)
+(cc23, cc23_p) = pF "cc23" (Just 0)
+(cc24, cc24_p) = pF "cc24" (Just 0)
+(cc25, cc25_p) = pF "cc25" (Just 0)
+(cc26, cc26_p) = pF "cc26" (Just 0)
+(cc27, cc27_p) = pF "cc27" (Just 0)
+(cc28, cc28_p) = pF "cc28" (Just 0)
+(cc29, cc29_p) = pF "cc29" (Just 0)
+(cc30, cc30_p) = pF "cc30" (Just 0)
+(cc31, cc31_p) = pF "cc31" (Just 0)
+(cc32, cc32_p) = pF "cc32" (Just 0)
+(cc33, cc33_p) = pF "cc33" (Just 0)
+(cc34, cc34_p) = pF "cc34" (Just 0)
+(cc35, cc35_p) = pF "cc35" (Just 0)
+(cc36, cc36_p) = pF "cc36" (Just 0)
+(cc37, cc37_p) = pF "cc37" (Just 0)
+(cc38, cc38_p) = pF "cc38" (Just 0)
+(cc39, cc39_p) = pF "cc39" (Just 0)
+(cc40, cc40_p) = pF "cc40" (Just 0)
+(cc41, cc41_p) = pF "cc41" (Just 0)
+(cc42, cc42_p) = pF "cc42" (Just 0)
+(cc43, cc43_p) = pF "cc43" (Just 0)
+(cc44, cc44_p) = pF "cc44" (Just 0)
+(cc45, cc45_p) = pF "cc45" (Just 0)
+(cc46, cc46_p) = pF "cc46" (Just 0)
+(cc47, cc47_p) = pF "cc47" (Just 0)
+(cc48, cc48_p) = pF "cc48" (Just 0)
+(cc49, cc49_p) = pF "cc49" (Just 0)
+(cc50, cc50_p) = pF "cc50" (Just 0)
+(cc51, cc51_p) = pF "cc51" (Just 0)
+(cc52, cc52_p) = pF "cc52" (Just 0)
+(cc53, cc53_p) = pF "cc53" (Just 0)
+(cc54, cc54_p) = pF "cc54" (Just 0)
+(cc55, cc55_p) = pF "cc55" (Just 0)
+(cc56, cc56_p) = pF "cc56" (Just 0)
+(cc57, cc57_p) = pF "cc57" (Just 0)
+(cc58, cc58_p) = pF "cc58" (Just 0)
+(cc59, cc59_p) = pF "cc59" (Just 0)
+(cc60, cc60_p) = pF "cc60" (Just 0)
+(cc61, cc61_p) = pF "cc61" (Just 0)
+(cc62, cc62_p) = pF "cc62" (Just 0)
+(cc63, cc63_p) = pF "cc63" (Just 0)
+(cc64, cc64_p) = pF "cc64" (Just 0)
+(cc65, cc65_p) = pF "cc65" (Just 0)
+(cc66, cc66_p) = pF "cc66" (Just 0)
+(cc67, cc67_p) = pF "cc67" (Just 0)
+(cc68, cc68_p) = pF "cc68" (Just 0)
+(cc69, cc69_p) = pF "cc69" (Just 0)
+(cc70, cc70_p) = pF "cc70" (Just 0)
+(cc71, cc71_p) = pF "cc71" (Just 0)
+(cc72, cc72_p) = pF "cc72" (Just 0)
+(cc73, cc73_p) = pF "cc73" (Just 0)
+(cc74, cc74_p) = pF "cc74" (Just 0)
+(cc75, cc75_p) = pF "cc75" (Just 0)
+(cc76, cc76_p) = pF "cc76" (Just 0)
+(cc77, cc77_p) = pF "cc77" (Just 0)
+(cc78, cc78_p) = pF "cc78" (Just 0)
+(cc79, cc79_p) = pF "cc79" (Just 0)
+(cc80, cc80_p) = pF "cc80" (Just 0)
+(cc81, cc81_p) = pF "cc81" (Just 0)
+(cc82, cc82_p) = pF "cc82" (Just 0)
+(cc83, cc83_p) = pF "cc83" (Just 0)
+(cc84, cc84_p) = pF "cc84" (Just 0)
+(cc85, cc85_p) = pF "cc85" (Just 0)
+(cc86, cc86_p) = pF "cc86" (Just 0)
+(cc87, cc87_p) = pF "cc87" (Just 0)
+(cc88, cc88_p) = pF "cc88" (Just 0)
+(cc89, cc89_p) = pF "cc89" (Just 0)
+(cc90, cc90_p) = pF "cc90" (Just 0)
+(cc91, cc91_p) = pF "cc91" (Just 0)
+(cc92, cc92_p) = pF "cc92" (Just 0)
+(cc93, cc93_p) = pF "cc93" (Just 0)
+(cc94, cc94_p) = pF "cc94" (Just 0)
+(cc95, cc95_p) = pF "cc95" (Just 0)
+(cc96, cc96_p) = pF "cc96" (Just 0)
+(cc97, cc97_p) = pF "cc97" (Just 0)
+(cc98, cc98_p) = pF "cc98" (Just 0)
+(cc99, cc99_p) = pF "cc99" (Just 0)
+(cc100, cc100_p) = pF "cc100" (Just 0)
+(cc101, cc101_p) = pF "cc101" (Just 0)
+(cc102, cc102_p) = pF "cc102" (Just 0)
+(cc103, cc103_p) = pF "cc103" (Just 0)
+(cc104, cc104_p) = pF "cc104" (Just 0)
+(cc105, cc105_p) = pF "cc105" (Just 0)
+(cc106, cc106_p) = pF "cc106" (Just 0)
+(cc107, cc107_p) = pF "cc107" (Just 0)
+(cc108, cc108_p) = pF "cc108" (Just 0)
+(cc109, cc109_p) = pF "cc109" (Just 0)
+(cc110, cc110_p) = pF "cc110" (Just 0)
+(cc111, cc111_p) = pF "cc111" (Just 0)
+(cc112, cc112_p) = pF "cc112" (Just 0)
+(cc113, cc113_p) = pF "cc113" (Just 0)
+(cc114, cc114_p) = pF "cc114" (Just 0)
+(cc115, cc115_p) = pF "cc115" (Just 0)
+(cc116, cc116_p) = pF "cc116" (Just 0)
+(cc117, cc117_p) = pF "cc117" (Just 0)
+(cc118, cc118_p) = pF "cc118" (Just 0)
+(cc119, cc119_p) = pF "cc119" (Just 0)
+(cc120, cc120_p) = pF "cc120" (Just 0)
+(cc121, cc121_p) = pF "cc121" (Just 0)
+(cc122, cc122_p) = pF "cc122" (Just 0)
+(cc123, cc123_p) = pF "cc123" (Just 0)
+(cc124, cc124_p) = pF "cc124" (Just 0)
+(cc125, cc125_p) = pF "cc125" (Just 0)
+(cc126, cc126_p) = pF "cc126" (Just 0)
+(cc127, cc127_p) = pF "cc127" (Just 0)
+
+
+
+
+
+fs1r3 $ n "[0,3,7,11,13,16,19](13,16)?" |+| n (choose [0]) |+| n (choose [0,12,24]) # dur (rand * 0.2 + 0.01) # pan rand # velocity 1
+
+fs1r4 $ off 0.125 (|+| n 3) $ off 0.25 (|+| n 7) $ n "0*16?" |+| n (choose [0,3,7,10]) |+| n (choose [24,36,48]) # velocity (rand + 0.3) # dur (rand * 0.01)
+
+fs1r2 $ n "0*8?" |+| n (choose [0,3,7]) |-| n 36 # dur (rand * 100) # pan rand # velocity 1
+
+
+
+
+
+:t scaleP
+
+:t stut
+
+:t chord
+
+:t velocity
+
+:t cc10
+
+:t n
+
+rytm $ spreadr fast (map (* 0.5) [1,2,3]) $ every 3 rev $ rr [4,7] $ n "[0*8?, 8*8, 9, 3/4]" |-| n "60" # pan rand
+
+
+:t offset
+
+
+fs1r3 $ silence
+
+fs1r1 $ silence
+
+fs1r2 $ silence
+
+fs1r4 $ silence
+
+
+
+rytm $ silence
+
+:t pan
+
+:t cc10
+
+:t cc17
+
+c1 $ silence
+
+m1 $ silence
+
+m1 $ n (run 4) # velocity "0.5" 
+
+:t midinote
+
+
+
+:t d1
+
+:t s1
+
+hush
+
+
+
+
+
+--- superdirt midi
+
+(midicmd, midicmd_p) = pS "midicmd" (Nothing)
+(midichan, midichan_p) = pF "midichan" (Nothing)
+(progNum, progNum_p) = pF "progNum" (Nothing)
+(val, val_p) = pF "val" (Nothing)
+(uid, uid_p) = pF "uid" (Nothing)
+(array, array_p) = pF "array" (Nothing)
+(frames, frames_p) = pF "frames" (Nothing)
+(seconds, seconds_p) = pF "seconds" (Nothing)
+(minutes, minutes_p) = pF "minutes" (Nothing)
+(hours, hours_p) = pF "hours" (Nothing)
+(frameRate, frameRate_p) = pF "frameRate" (Nothing)
+(songPtr, songPtr_p) = pF "songPtr" (Nothing)
+(ctlNum, ctlNum_p) = pF "ctlNum" (Nothing)
+(control, control_p) = pF "control" (Nothing)
+
+(amp, amp_p) = pF "amp" (Nothing)
+
+
+d1 $ degradeBy 0.7 $ stack [note "-12*16",
+            fast 16 $ ccn 10 # ccv (irand 127)
+           ] #s "midi" # midichan (choose [1,3,8,9,0])
+
+
+cps(90/120)
+
+do
+  hush
+  d1 $
+    -- slow 4 $
+    spreadr fast (map (* 0.5) [1,2,3,4,5]) $
+    ssA 0.5 $
+    rr [3,5] $
+    zz [4,9] $
+    stack [ stack [
+              midichan "[0 ~ ~ 0 1 ~ 0 3,8*16?, 9]" # note "-36" # amp 1 # sustain 0.1
+              , n "128*16" # ccn 10 # ccv (fast 1 $ choose [1..127]) # midichan 0
+              , n "128*16" # ccn 10 # ccv (fast 2 $ choose [1..127]) # midichan 1
+              , n "128*16" # ccn 10 # ccv (fast 3 $ choose [1..127]) # midichan 3
+              , n "128*16" # ccn 10 # ccv (fast 4 $ choose [1..127]) # midichan 8
+              , n "128*16" # ccn 10 # ccv (fast 5 $ choose [1..127]) # midichan 9
+              , n "128*16" # ccn 81 # ccv (fast 7 $ choose [0..30]) # midichan (choose [0,1,3,8,9])
+              ]  # s "rytm*8"
+          , stack [
+              rr [3,5] $ zz [7] $ note "{0,1,3,6,9,11}(14,16)" # midichan 3 |+| note (choose [0])|+| note (choose [-36,-24,-12,0]) # sustain (rand * 0.6)
+              , n "128*16" # ccn 10 # ccv (fast 127 $ choose [1,64,127]) # midichan 3
+              ] # s "fs1r"
+          ]
+
+
+do
+  d1 $ midichan "{0/7,3/9}" # s "rytm" # note "-36"
+  d2 $ s "fs1r/3" # midichan 0 # note "{0,3,7,11}" |+| note (choose [0,3,7,11]) |+| note (choose [12,24]) # sustain 1
+
+
+
+do
+  d1 $
+    stack [ midichan "[0 ~ 0 ~ 1 0 ~ [0 0],8*4]" # note "-48"
+          , midichan "4" # note "-48"
+            ] # amp 1 # s "rytm"
+  d2 $ s "fs1r(5,8)" # midichan 0 # note "{0,4,7,11,13}" |+| note (choose [12]) |+| note (choose [0]) # sustain (rand * 0.1 + 0.01)
+  d3 $ off 0.125 (|+| n 3) $ off 0.25 (|+| n 11) $ n "0*8" |+| n (choose [0,3,7,10]) |+| n (choose [36,48,60]) # midichan 3 # s "fs1r" # sustain 0.1
+
+
+
+
+:t chord
+
+:t note
+
+hush
+
+
+
+d4 $ 
+
+d1 $ silence
+
+hush
+
+:t control
+
+
+d1 $ s "bd"

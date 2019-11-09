@@ -1,0 +1,52 @@
+d3 $
+  spreadr fast [2,3,4] $
+  spreadr fast [1,2,3,4] $
+  sound (randcat ["nn*4?", "nn*3", "nn*5"])
+  # n (fast 16 $ irand 66)
+  # speed (fast 12 $ choose ([0.1,1,2]))
+  # begin (range 0.1 0.2 rand)
+  # end (range 0.2 0.8 rand)
+  # cut (choose [2,1])
+  # pan (fast 16 $ rand)
+  # loop (irand 6)
+  # amp 1.8
+
+
+
+d2 $
+  spreadr fast [1,2] $
+  s (randcat ["bd8*4", "cp9*3?"])
+  # speed (fast 32 $ choose [0.8..2])
+  # cut 2 # pan rand
+  # amp 1.3 # crush 10 # shape 0.9
+  # cps(slow 3 $ (range 0.1 1.3 saw))
+
+hush
+
+
+d2 $ silence
+
+do
+  d2 $ silence
+  d3 $ silence
+
+d1 $
+  spreadr fast [2,3,4,5] $
+  spreadr fast [1,3] $
+  s "any*3?"
+  # speed (fast 32 $ (choose ([0.2..3])))
+  # cut 1 # n (irand 16)
+  # begin (range 0.3 0.4 rand)
+  # end (range 0.2 0.5 rand)
+  # pan rand
+  # amp 1.9
+  # loop (irand 10) # crush 10
+
+d1 $ silence
+
+d5 $ degradeBy 0.4 $ spreadr slow [4,5,6] $ s (randcat ["bd8*3", "sr*5", "bd*3", "bd*4", "bd(3,7)", "bd(4,9)", "sn9*4?", "cp9*6", "ch9*6", "oh9*3"]) # speed 1 # pan (fast 12 $ rand) # cut (choose [2,3,4]) # n (irand 24) # amp 2 # crush 10
+
+d5 $ silence
+
+
+d1 $ s "any:5" # speed 1 # begin 0.3 # end 0.301 # loop 10 # cut 1

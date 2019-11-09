@@ -3,6 +3,9 @@ MIDIClient.list;
 ~midiOut = MIDIOut.newByName("UX16", "UX16 MIDI 1");
 ~midiOut.latency = 0.0;
 
+~midiOut2 = MIDIOut.newByName("Elektron Analog Rytm", "Elektron Analog Rytm MIDI 1");
+~midiOut2.latency = 0.0;
+
 s.options.device = "SuperCollider";
 s.options.sampleRate = 44100;
 s.options.numBuffers = 32;
@@ -56,25 +59,16 @@ s.waitForBoot{
 	es5[ch].set(\t_trig, gate);
   };
 
-  var playMG = {|params, mixCh, morphCh|
-	es3[mixCh].set(\val, dictAt.value(params, \mix,  0));
-	es3[morphCh].set(\val, dictAt.value(params, \morph,  0));
+  var playMG = {|params, mixCh, morphCh, pitchCh, speedCh, inflCh|
+	es8[mixCh].set(\val, dictAt.value(params, \mix,  0));
+	es8[morphCh].set(\val, dictAt.value(params, \morph,  0));
+	es8[pitchCh].set(\val, dictAt.value(params, \pitch,  0));
+	es8[speedCh].set(\val, dictAt.value(params, \speed,  0));
+	es8[inflCh].set(\val, dictAt.value(params, \infl,  0));
   };
 
   var synths = (
-	// params, noteCh, decayCh, gateCh, panCh
-	dp: { |p| playSynthA.(p, 0, 1, 0, 0); },
-	at: { |p| playSynthA.(p, 2, 3, 5, 2); },
-	bd: { |p| playSynthA.(p, 4, 5, 1, 1) },
-	bi: { |p| playSynthA.(p, 6, 7, 6, -1) },
-
-	// params, gateCh, panCh
-	// bd: { |p| playSynthB.(p, 1, 1) },
-	cp: { |p| playSynthB.(p, 2, 2) },
-	oh: { |p| playSynthB.(p, 3, 3) },
-	ch: { |p| playSynthB.(p, 4, 3) },
-	mg: { |p| playMG.(p, 4, 5)},
-	clock: { |p| playGate.(p, 7) },
+	mg: { |p| playMG.(p,0,1,2,3,4)},
   );
 
   var zzzOut = (play: { |dirtEvent|
@@ -92,6 +86,7 @@ s.waitForBoot{
   ~dirt.start();
   ~dirt.soundLibrary.addSynth(\modular, zzzOut);
   ~dirt.soundLibrary.addMIDI(\nord, ~midiOut);
+  ~dirt.soundLibrary.addMIDI(\rytm, ~midiOut2);
 
   SynthDef(\function, { | ch=14, attack=0.001, decay=0.2, curve=(-6), mul=1, t_trig=1, offset=0 |
 	var e, dc;

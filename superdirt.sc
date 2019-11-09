@@ -2,6 +2,8 @@ include("Vowel")
 
 
 
+
+
 Platform.userExtensionDir
 
 Platform.systemExtensionDir
@@ -13,42 +15,19 @@ s.quit
 Platform.userExtensionDir
 
 (
-// configure the sound server: here you could add hardware specific options
-// see http://doc.sccode.org/Classes/ServerOptions.html
-s.options.numBuffers = 1024 * 256; // increase this if you need to load more samples
-s.options.memSize = 8192 * 128; // increase this if you get "alloc failed" messages
-s.options.maxNodes = 1024 * 512; // increase this if you are getting drop outs and the message "too many nodes"
-s.options.numOutputBusChannels = 2; // set this to your hardware output channel size, if necessary
-s.options.numInputBusChannels = 2; // set this to your hardware input channel size, if necessary
-// boot the server and start SuperDirt
-s.latency_(0.5);
+s.options.numBuffers = 2048 * 256;
+s.options.maxNodes = 2048 * 512;
+s.options.memSize = 8192 * 128;
+s.latency_(0.1);
 s.waitForBoot {
-    ~dirt = SuperDirt(2, s); // two output channels, increase if you want to pan across more channels
-pp    ~dirt.loadSoundFiles;   // load samples (path containing a wildcard can be passed in)
-    s.sync; // wait for samples to be read
-    ~dirt.start(57120, [0, 0]);   // start listening on port 57120, create two orbits, each sending audio to channel 0. You can direct sounds to the orbits from tidal e.g. by: `# orbit "0 1 1"
+  SuperDirt.start()
 }
 )
 
 
 
-
-s.options.numBuffers = 2048 * 256;
-s.options.maxNodes = 2048 * 512;
-s.options.memSize = 8192 * 128;
-
-s.boot
-
-
 s.quit
 
-
-
-SuperDirt.start
-
-SuperDirt.stop
-
-s.quit
 
 ~dirt.numChannels
 
@@ -77,8 +56,61 @@ s.plotTree
 Quarks.install("MembraneHexagon")
 
 
-(
 
+(
+SynthDef(\sawc, {|out,sustain=1,freq=440,ffreq=3000,speed=1,begin=0,end=1,pan,accelerate,offset|
+  var env, sig;
+  env = EnvGen.ar(Env.perc(0.001, 0.999, 1, -3), timeScale:sustain, doneAction:2);
+  sig = LFSaw.ar(freq, 0.8) + LFPulse.ar(freq * 1.18, 0.01, 0.2);
+  sig = CombN.ar(sig, 0.01, SinOsc.kr(ExpRand(0.05, 0.99), ExpRand(0.01, 0.99), 0.001, 0.01), 1);
+  sig = CombN.ar(sig, 0.05, SinOsc.kr(ExpRand(0.05, 0.99), ExpRand(0.01, 0.99), 0.002, 0.01), 1);
+  sig = CombN.ar(sig, 0.05, SinOsc.kr(ExpRand(0.05, 0.99), ExpRand(0.01, 0.99), 0.008, 0.01), 1);
+  sig = CombN.ar(sig, 0.05, SinOsc.kr(ExpRand(0.05, 0.99), ExpRand(0.01, 0.99), 0.009, 0.01), 1);
+  // sig = CombN.ar(sig, 0.03, SinOsc.kr(ExpRand(0.1, 0.9), 0.8, 0.002, 0.001), 1);
+  // sig = CombN.ar(sig, 0.03, SinOsc.kr(0.2, 0.88, 0.009, 0.001), 1);
+  // sig = CombN.ar(sig, 0.02, SinOsc.kr(0.1, 0.1, 0.006, 0.005), 1);
+  sig = LeakDC.ar(sig);
+  OffsetOut.ar(out, DirtPan.ar(sig, ~dirt.numChannels, pan, env);
+  )
+}).add
+)
+
+(
+SynthDef(\pmc, {|out,sustain=1,freq=440,ffreq=3000,speed=1,begin=0,end=1,pan,accelerate,offset|
+  var env, sig;
+  env = EnvGen.ar(Env.perc(0.001, 0.999, 1, -3), timeScale:sustain, doneAction:2);
+  sig = PMOsc.ar(
+	freq,
+	freq * ExpRand(0.8, 30) * env,
+	ExpRand(5, 30) * env,
+	ExpRand(1, 10) * env);
+  4.do({sig = CombN.ar(sig, 0.01, SinOsc.kr(ExpRand(0.05, 0.99), ExpRand(0.01, 0.99), ExpRand(0.001, 0.009), 0.01), 1);  });
+  sig = LeakDC.ar(sig);
+  OffsetOut.ar(out, DirtPan.ar(sig, ~dirt.numChannels, pan, env);
+  )
+}).add
+)
+
+
+
+(
+SynthDef(\pmc2, {|out,sustain=1,freq=440,ffreq=3000,speed=1,begin=0,end=1,pan,accelerate,offset|
+  var env, sig;
+  env = EnvGen.ar(Env.perc(0.001, 0.999, 1, -3), timeScale:sustain, doneAction:2);
+  sig = PMOsc.ar(
+	freq,
+	freq * ExpRand(0.8, 30) * env,
+	ExpRand(5, 30) * env,
+	ExpRand(1, 10) * env);
+  sig = Mix.fill(4, {CombN.ar(sig, 0.01, SinOsc.kr(ExpRand(0.05, 0.99), ExpRand(0.01, 0.99), ExpRand(0.001, 0.009), 0.01), 1);});
+  sig = LeakDC.ar(sig);
+  OffsetOut.ar(out, DirtPan.ar(sig, ~dirt.numChannels, pan, env);
+  )
+}).add
+)
+
+
+(
 SynthDef("supersaw", {|freq = 440, gain=1|
   var n = 10, rand_freq_range = 3, rand_variable_range = 3, rand_amp_range = 0.1;
   Out.ar(0, DirtPan.ar(
@@ -184,7 +216,17 @@ SynthDef("pmex", {|
 }).store;
 )
 
+(
+SynthDef(\bass, {|out,sustain=1,freq=440,ffreq=1000,rq=0.5speed=1,begin=0,end=1,pan,accelerate,offset|
+  var env, sig;
+  env = EnvGen.ar(Env.perc(0.0001, sustain, 1, -1), doneAction:2);
+  sig = RLPF.ar(Saw.ar(freq * Line.kr(1,1+accelerate, sustain)), ffreq * env + freq, rq).softclip;
+  OffsetOut.ar(out, DirtPan.ar(sig, ~dirt.numChannels, pan, env));
+}).add
+)
 
+
+Synth(\bass, [\freq, 50, \sustain, 0.2, \rq, 0.1])
 
 // http://mcld.co.uk/blog/2009/reverse-engineering-the-rave-hoover.html
 (
@@ -220,7 +262,7 @@ SynthDef(\hv, { |out=0,freq=440, pan=0.5|
     son = son + BPF.ar(son, 1000, mul: 0.5) + BPF.ar(son, 3000, mul: 0.3);
 
     // This envelope mainly exists to allow the synth to free when needed:
-    son = son * 0.1;
+    son = son * 0.5;
 
     OffsetOut.ar(out, DirtPan.ar(son, 2, pan));
 }).store;
@@ -253,22 +295,26 @@ SynthDef("vosim", { |out = 0, freq = 1000, pan=0.5, sustain=0.5, a=0.00001|
 )
 
 (
-SynthDef("kick", {|out=0, freq=100,pan=0.5, sustain=0.5, a=0.00001, d=0.2|
-  var env = EnvGen.ar(Env.perc(a, d, 1, -4), doneAction:2);
-  var f = 200;
-  o = PMOsc.ar(env * f * 0.8, env * (f * 0.9), env * 1.8) + SinOsc.ar((f * 1.2) * env + 20, 0.5);
+SynthDef("kick", {|out=0, freq=50,pan=0.5, sustain=0.5, a=0.00001, d=3|
+  var env = EnvGen.ar(Env.perc(a, d, 1, -6), doneAction:2);
+  var fenv = EnvGen.ar(Env.perc(a, 0.08, 1, -6), doneAction:0);
+  var f = 120;
+  o = PMOsc.ar(fenv * f + 20, fenv * f * 1.2, fenv * 3);
   OffsetOut.ar(out, DirtPan.ar(o * 0.5, 2, pan, env));
 }).store
 )
 
 
 (
-SynthDef("pmhh", {|out=0, freq=20000, pan=0.5, sustain=0.5, a=0.00001, d=0.05|
+SynthDef("phh", {|out=0, freq=20000, pan=0.5, sustain=0.5, a=0.00001, d=0.05|
   var env = EnvGen.ar(Env.perc(a, d, 1, -4), doneAction:2), f = 20000;
-  o = PMOsc.ar(f, f * 2.355555, 60 * env);
+  o = PMOsc.ar(f, f*2.01, 10 * env);
   OffsetOut.ar(out, DirtPan.ar(o * 0.5, 2, pan, env));
 }).store
 )
+
+
+
 
 
 
@@ -308,7 +354,7 @@ SynthDef("hn", {|out=0, freq=100, pan=0, sustain=0.5,v1=1,v2=3|
   var env = EnvGen.kr(Env.linen(0.001, 1, 0, -4), timeScale:sustain, doneAction:2);
   OffsetOut.ar(out, DirtPan.ar(o, 2, pan, env));
 }).store
-
+)
 
 (
 SynthDef("st1", {|out=0, freq=1000, pan=0, sustain=0.5,k=1, xi=0.5, yi=0|
@@ -316,7 +362,7 @@ SynthDef("st1", {|out=0, freq=1000, pan=0, sustain=0.5,k=1, xi=0.5, yi=0|
   OffsetOut.ar(out, DirtPan.ar(o, 2, pan))
 }).store
 )
-)
+
 
 
 {SinOscFB.ar(MouseY.kr(10,1000,'exponential'),MouseX.kr(0.01,100))*0.1}.play
@@ -427,12 +473,8 @@ d1 $ sound "can*4" # tsdelay "0 0.25 0.5 0.75 1" # xsdelay "3 124 3 12 62 2"
 
 
 
-(4000.123 / 44100)
 
-(SampleRate.ir * )
-
-
-{HenonL.ar(MouseX.kr(10, SampleRate.ir), LFNoise2.kr(2,0.2,1.2), LFNoise2.kr(1, 0.15, 0.15)) }.play
+{HenonL.ar(LFNoise2.kr(0.3, 10, SampleRate.ir), LFNoise2.kr(2,0.2,1.2), LFNoise2.kr(1, 0.15, 0.15)) }.play
 
 (
 {LatoocarfianN.ar(
@@ -443,6 +485,18 @@ d1 $ sound "can*4" # tsdelay "0 0.25 0.5 0.75 1" # xsdelay "3 124 3 12 62 2"
     LFNoise2.kr(2,0.5,1.5)
 )}.play
 )
+
+(
+{LatoocarfianN.ar(
+    SampleRate.ir/4,
+    LFNoise2.kr(ExpRand(0.8,4),1.5,1.5),
+    LFNoise2.kr(ExpRand(0.8,4),1.5,1.5),
+    LFNoise2.kr(ExpRand(0.8,4),0.5,1.5),
+    LFNoise2.kr(ExpRand(0.8,4),0.5,1.5)
+)}.play
+)
+
+
 
 (
 { FBSineN.ar(
@@ -457,6 +511,9 @@ d1 $ sound "can*4" # tsdelay "0 0.25 0.5 0.75 1" # xsdelay "3 124 3 12 62 2"
 { CuspN.ar(MouseX.kr(20, SampleRate.ir), 1.0, 1.99)}.play
 
 { CuspN.ar(SampleRate.ir/4, MouseX.kr(0.9,1.1,1), MouseY.kr(1.8,2,1)) * 0.3 }.play
+
+
+
 
 (
 { CuspN.ar(
@@ -516,3 +573,561 @@ s.dumpOSC
 
 
 
+
+
+
+
+
+
+
+
+
+
+/*
+Schemawound track for Waxen Wing's "Give Me A Sine" compilation.
+
+Compilation Description: All songs written using ONLY sine waves in their creation. All oscillations, modulations, lfo's, envelopes, etc, use only sine waves. No samples or outside source audio were permitted on this releases, unless of course the samples were of pure sine waves. Download includes full 8 panel artwork and extensive liner notes on each piece written by each artist. 
+
+Download the free compilation here: http://waxenwings.bandcamp.com/album/give-me-a-sine
+
+Blog post about the creation of this track: http://schemawound.tumblr.com/post/24520532915/sinusoid
+*/
+
+(
+//-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- Sinusoid -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+	SynthDef(\Sinusoid, {
+		|
+			out = 0,					gate = 1,					amp = 1,					freqArrayMult = 1,		
+			mod1FreqRLfoFreq = 0.1,		mod1FreqRLfoDepth = 100,	mod1FreqRLfoOffset = 100,	
+			mod2Freq = 50,				combDelay = 0.7, 			combDecay = 9,				
+			attack = 0.001 				release = 0.5
+		|
+		//
+		var combMaxDelay = 10;
+		//Many Sines
+		var freqArray = (1..50) * freqArrayMult; 
+		var manySines = Mix(SinOsc.ar(freqArray));
+		//Mod1
+		var mod1FreqL = SinOsc.kr(150, 0, 20);
+		var mod1FreqRLfo = SinOsc.kr(mod1FreqRLfoFreq, 0, mod1FreqRLfoDepth, mod1FreqRLfoOffset);
+		var mod1FreqR = SinOsc.kr(mod1FreqRLfo, 0, 37);
+		var mod1 = SinOsc.ar([mod1FreqL, mod1FreqR]);
+		//Mod2
+		var mod2 = SinOsc.ar(mod2Freq);
+		//Sum and FX
+		var sinSum = manySines * mod1 * mod2;
+		var comb = sinSum; //+ CombC.ar(sinSum, combMaxDelay, combDelay, combDecay);
+		var dist = comb.tanh;
+		var env = dist * Linen.kr(gate, attack, amp, release, doneAction: 2);
+		//Output
+		Out.ar(out, env);
+	}).add;
+
+//-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- ELEKTRO KICK -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+	SynthDef(\ElektroKick, { 
+		|
+			out = 0,		gate = 1,		amp = 1,			freqArrayMult = 1,		
+			basefreq = 50,	envratio = 3, 	freqdecay = 0.02, 	ampdecay = 0.5
+		|
+		var fenv = EnvGen.ar(Env([envratio, 1], [freqdecay], \exp), 1) * basefreq;
+		var aenv = EnvGen.ar(Env.perc(0.005, ampdecay), 1, doneAction:2);
+		var output = SinOsc.ar(fenv, 0.5pi, aenv) * amp;
+		Out.ar(out, output!2);
+	}).add;
+
+//-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- VERB -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+	SynthDef(\Verb, {
+		arg 	out = 0,	in,
+			mix = 0.25,	room = 0.15,	damp = 0.5;
+	
+		var input, verb;
+		
+		input = In.ar(in);
+		verb = FreeVerb.ar(input, mix, room, damp);
+		Out.ar(out, verb!2);
+	}).add;
+)
+
+(
+	//Groups and Busses
+	var sourceGroup = Group.new;
+	var fxGroup = Group.after(~sourceGroup);
+	var verbBus = Bus.audio(s, 2);
+	var mainOut = 0;
+	var verb = Synth.tail(~fxGroup, \Verb, [\in, verbBus, \out, mainOut, \mix, 1, \room, 1]);
+
+	//Song Variables
+	var bar = 0.94;
+	var qNote = bar/4;
+	var eNote = bar/8;
+
+	//Mix
+	var finalAmp 	= 0.1;
+	var hatAmp 		= 0.6 * finalAmp;
+	var bassAmp 	= 0.8 * finalAmp;
+	var loToneAmp 	= 0.8 * finalAmp;
+	var hiWhineAmp 	= 0.7 * finalAmp;
+	var eKickAmp 	= 2.1 * finalAmp;
+
+	//Basic Patterns
+	var hat = {|beatsPerMeasure = 9, freqArrayMult = 1|
+		Pbind(*[instrument: \Sinusoid, amp: hatAmp, group: sourceGroup,
+			dur:				Pseq([bar / beatsPerMeasure], beatsPerMeasure),
+			freqArrayMult:		Pxrand((1..12), inf),
+			mod2Freq:			Pwhite(60, 6000, inf),
+			mod1FreqRLfoFreq:	0.01,
+			mod1FreqRLfoDepth:	Pwhite(1000, 3000, inf),
+			mod1FreqRLfoOffset:	Pwhite(10, 300, inf),
+			release:			Pkey(\dur)
+		])
+	};
+	var bass = {|beatsPerMeasure|
+		Pbind(*[instrument: \Sinusoid, amp: bassAmp, group: sourceGroup,
+			dur:				Pseq([bar / beatsPerMeasure], beatsPerMeasure),
+			mod2Freq:			Pwhite(30, 300, inf),
+			mod1FreqRLfoFreq:	Pwhite(0.1, 0.3, inf),
+			mod1FreqRLfoDepth:	Pwhite(10, 300, inf),
+			mod1FreqRLfoOffset:	Pwhite(10, 300, inf),
+			release:			0.001
+		])
+	};
+	var lowtone = {|beatsPerMeasure = 1, attack = 0.001, out = 0|
+		Pbind(*[instrument: \Sinusoid, amp: loToneAmp, group: sourceGroup,
+			dur:				Pseq([bar / beatsPerMeasure], beatsPerMeasure),
+			mod2Freq:			Pwhite(30, 400, inf),
+			mod1FreqRLfoFreq:	Pwhite(0.1, 0.3, inf),
+			mod1FreqRLfoDepth:	Pwhite(10, 300, inf),
+			mod1FreqRLfoOffset:	Pwhite(10, 300, inf),
+			attack:				attack,
+			release:			Pkey(\dur),
+			out:				out
+		])
+	};
+	var lowtoneLong = Pbind(*[instrument: \Sinusoid, amp: loToneAmp, group: sourceGroup,
+		dur:				Pseq([bar*8], 1),
+		freqArrayMult:		3,
+		mod2Freq:			50,
+		mod1FreqRLfoFreq:	0.1,
+		mod1FreqRLfoDepth:	100,
+		mod1FreqRLfoOffset:	100,
+		release:			3
+	]);
+	var hiWhine = {|out = 0|
+		Pbind(*[instrument: \Sinusoid, amp: hiWhineAmp, group: sourceGroup,
+			dur:				Pseq([bar], 1),
+			mod2Freq:			2000,
+			mod1FreqRLfoFreq:	Pwhite(0.1, 0.3, inf),
+			mod1FreqRLfoDepth:	100,
+			mod1FreqRLfoOffset:	100,
+			release:			Pkey(\dur),
+			out:				out
+		])
+	};
+	var elektroKick = {|beatsPerMeasure = 1|
+		Pbind(*[instrument: \ElektroKick, amp: eKickAmp, group: sourceGroup,
+			dur:				Pseq([bar / beatsPerMeasure], beatsPerMeasure),
+			basefreq:			Pwhite(70, 75),
+			ampdecay:			2,
+			envratio:			1,
+			freqdecay:			1
+		])
+	};
+
+	//8 Bar Patterns
+	var loTonePat = [
+		Pn(lowtone.(1), 8),					//loTone pattern 0 - 8 bars
+		Pn(lowtone.(1, bar), 8),				//loTone pattern 1 - 8 bars
+		Pn(lowtone.(1, out:verbBus), 8)	//loTone pattern 2 - 8 bars
+	];
+
+	var hiWhinePat = [
+		Pn(hiWhine.(verbBus), 8),	//hiWhine pattern 0 - 8 bars
+		Pn(hiWhine.(mainOut), 8)	//hiWhine pattern 0 - 8 bars
+	];
+
+	var hatPat = [
+		Pseq([//hat pattern 0 - 8 bars
+			Pn(hat.(9), 7),		hat.(11)
+		]),	
+		Pseq([//hat pattern 1 - 8 bars
+			hat.(8), 			hat.(9,(1..12)),	hat.(9), 			hat.(7,(1..12)),
+			hat.(6,(1..12)),	hat.(12,(1..12)),	hat.(6,(1..12)),	hat.(24,(1..12))
+		]),
+		Pseq([//hat pattern 2 - 8 bars
+			hat.(8), 			hat.(3),			hat.(6),			hat.(9),
+			hat.(8,(1..12)),	hat.(3,(1..12)),	hat.(6,(1..12)),	hat.(12,(1..12))
+		]),
+		Pseq([//hat pattern 3 - 8 bars
+			hat.(9), 			hat.(8),			hat.(7),			hat.(8),
+			hat.(9,(1..12)),	hat.(8,(1..12)),	hat.(16,(1..12)),	hat.(32,(1..12))
+		])
+	];
+
+	var bassPat = [
+		Pn(bass.(3), 8),	//bass pattern 0 - 8 bars
+		Pseq([				//bass pattern 1 - 8 bars
+			bass.(4),	Pn(bass.(3),3)
+		], 2),
+		Pseq([				//bass pattern 2 - 8 bars
+			bass.(4),	Pn(bass.(3),3),		
+			bass.(4),	Pn(bass.(3),2), 	bass.(5)
+		]),
+		Pseq([				//bass pattern 3 - 8 bars
+			bass.(4), 	bass.(3.5), 		bass.(3),		bass.(3.5),
+			bass.(4), 	bass.(3), 			bass.(6),		bass.(7)
+		]),
+		Pseq([				//bass pattern 4 - 8 bars
+			bass.(4),	Pn(bass.(3), 7)
+		]),
+	];
+
+	var kickPat = [
+		Pn(elektroKick.(1), 8),		//kick pattern 0 - 8 bars
+		Pn(elektroKick.(2), 8)	//kick pattern 1 - 8 bars
+	];
+
+	var drop = [
+		Pn(Ppar([lowtone.(1), hiWhine.(verbBus)]), 2),										//Drop Pattern 0 - 2 bars
+		Pn(Ppar([lowtone.(1), hiWhine.(verbBus), elektroKick.(1)]), 2),						//Drop Pattern 1 - 2 bars
+		Pn(Ppar([lowtone.(1), hiWhine.(verbBus), elektroKick.(1), hiWhine.(mainOut)]), 2),	//Drop Pattern 2 - 2 bars
+	];
+
+	//Song
+	var song = Pseq([
+								loTonePat[0], 				
+		Ppar([	bassPat[0], 	loTonePat[0]																				]), 
+		Ppar([	bassPat[0], 	loTonePat[0],					hatPat[0]													]), 
+		drop[0], 
+		Ppar([	bassPat[0], 	loTonePat[0], 								kickPat[0]										]), 
+		Ppar([	bassPat[0], 	loTonePat[0],					hatPat[0], 	kickPat[0]										]),
+		drop[1],
+		Ppar([	bassPat[1], 									hatPat[2], 	kickPat[0]										]), 
+		Ppar([	bassPat[2], 	loTonePat[0], 					hatPat[2], 	kickPat[0]										]),
+		drop[2],
+		Ppar([	bassPat[1], 									hatPat[2], 	kickPat[0],		hiWhinePat[0]					]), 
+		Ppar([	bassPat[2], 	loTonePat[0], 					hatPat[2], 	kickPat[0]										]),
+		Ppar([	bassPat[1], 					loTonePat[2],	hatPat[2], 	kickPat[0],		hiWhinePat[0],	hiWhinePat[1]	]), 
+		Ppar([	bassPat[2], 	loTonePat[0],	loTonePat[2],	hatPat[2], 	kickPat[0],						hiWhinePat[1]	]),
+		drop[0],
+								loTonePat[2]
+	]);
+
+	song.play;
+)
+
+
+
+
+
+
+(
+var numChannels =  ~dirt.numChannels;
+
+ ~dirt.addModule('binscramble', { |dirtEvent|
+    dirtEvent.sendSynth('binscramble' ++ numChannels,
+      [
+        out: ~out,
+        bscr: ~binscr
+      ]
+    )
+  }, { ~binscr.notNil });
+
+
+  SynthDef("binscramble" ++ numChannels, { |out, pan = 0, binscr = 0|
+    var signal, chain, chain_r, lfo, lfo2, trig;
+    signal = In.ar(out, numChannels) * 1.9;
+    chain = FFT(LocalBuf(2048), signal[0]);
+    chain_r = FFT(LocalBuf(2048), signal[1]);
+    lfo = LFNoise2.kr(4).abs;
+    lfo2 = LFNoise2.kr(2).abs;
+    trig = Impulse.kr(32);
+    chain = PV_BinScramble(chain, lfo, lfo2, trig);
+    chain_r = PV_BinScramble(chain_r, lfo, lfo2, trig);
+    ReplaceOut.ar(out, Pan2.ar((signal * (1.0 - binscr)) + (binscr * [IFFT(chain), IFFT(chain_r)]), pan));
+  }).store;
+
+  ~dirt.addModule('binfreeze', { |dirtEvent|
+    dirtEvent.sendSynth('binfreeze' ++ numChannels,
+      [
+        out: ~out,
+        binfrz: ~binfrz
+      ]
+    )
+  }, { ~binfrz.notNil });
+
+  SynthDef("binfreeze" ++ numChannels, { |out, pan = 0, binfrz = 0|
+    var signal, chain, chain_r, thr;
+    signal = In.ar(out, numChannels) * 1.9;
+    chain = FFT(LocalBuf(2048), signal[0]);
+    chain_r = FFT(LocalBuf(2048), signal[1]);
+    thr = MouseY.kr;
+    chain = PV_MagFreeze(chain, thr > 0.5);
+    chain_r = PV_MagFreeze(chain_r, thr > 0.5);
+    ReplaceOut.ar(out, Pan2.ar((signal * (1.0 - binfrz)) + (binfrz * [IFFT(chain), IFFT(chain_r)]), pan));
+  }).store;
+
+  ~dirt.addModule('binshift', { |dirtEvent|
+    dirtEvent.sendSynth('binshift' ++ numChannels,
+      [
+        out: ~out,
+        binshf: ~binshf
+      ]
+    )
+  }, { ~binshf.notNil });
+
+
+  SynthDef("binshift" ++ numChannels, { |out, pan = 0, binshf = 0|
+    var signal, chain, chain_r, thr;
+    signal = In.ar(out, numChannels) * 1.4;
+    chain = FFT(LocalBuf(2048), signal[1]);
+    chain_r = FFT(LocalBuf(2048), signal[0]);
+    thr = MouseX.kr(0.25, 4, \exponential);
+    chain =  PV_BinShift(chain, thr);
+    chain_r =  PV_BinShift(chain_r, thr);
+    ReplaceOut.ar(out, Pan2.ar((signal * (1.0 - binshf)) + (binshf * [IFFT(chain), IFFT(chain_r)]), pan));
+  }).store;
+
+
+  ~dirt.addModule('binsmear', { |dirtEvent|
+    dirtEvent.sendSynth('binsmear' ++ numChannels,
+      [
+        out: ~out,
+        binsmr: ~binsmr
+      ]
+    )
+  }, { ~binsmr.notNil });
+
+  SynthDef("binsmear" ++ numChannels, { |out, pan = 0, binsmr = 0|
+    var in, chain, chain_r, bins;
+    in = In.ar(out, numChannels) * 1.75;
+    chain = FFT(LocalBuf(2048), in[1]);
+    chain_r = FFT(LocalBuf(2048), in[0]);
+    bins = MouseY.kr(0, 100);
+    chain = PV_MagSmear(chain, bins);
+    chain_r = PV_MagSmear(chain_r, bins);
+
+    ReplaceOut.ar(out, Pan2.ar((in * (1.0 - binsmr)) + (binsmr * [IFFT(chain), IFFT(chain_r)]), pan));
+  }).store;
+
+
+  ~dirt.addModule('brick', { |dirtEvent|
+    dirtEvent.sendSynth('brick' ++ numChannels,
+      [
+        out: ~out,
+        brick: ~brick
+      ]
+    )
+  }, { ~brick.notNil });
+
+  SynthDef("brick" ++ numChannels, { |out, pan = 0, brick = 0|
+    var in, chain, chain_r, wall;
+    in = In.ar(out, numChannels) * 1.35;
+    chain = FFT(LocalBuf(2048), in[1]);
+    chain_r = FFT(LocalBuf(2048), in[0]);
+    wall = LFNoise2.kr(0.0 + brick);
+    chain = PV_BrickWall(chain, wall);
+    chain_r = PV_BrickWall(chain_r, wall);
+
+    ReplaceOut.ar(out, Pan2.ar([IFFT(chain), IFFT(chain_r)], pan));
+  }).store;
+
+
+  ~dirt.addModule('distortion', { |dirtEvent|
+    dirtEvent.sendSynth('distortion' ++ numChannels,
+      [
+        out: ~out,
+        dist: ~dist
+      ]
+    )
+  }, { ~dist.notNil });
+
+  SynthDef("distortion" ++ numChannels, { arg out, pan = 0, dist = 0;
+    var in, mix;
+    in = Pan2.ar(In.ar(out, numChannels), LFNoise2.kr(0.3,0.4));
+    mix = ((in[0]*120).softclip)* 0.75;
+    ReplaceOut.ar(out, (in * (1.0 - dist)) + (dist * mix));
+  }).store;
+
+  ~dirt.addModule('convolution', { |dirtEvent|
+    dirtEvent.sendSynth('convolution' ++ numChannels,
+      [
+        out: ~out,
+        conv: ~conv
+      ]
+    )
+  }, { ~conv.notNil });
+
+  SynthDef("convolution" ++ numChannels, { arg out, note, pan = 0, conv = 0;
+    var in, karnel, mix;
+    karnel = LFPulse.ar((note + 60).midicps, 0.0, 0.15, 0.2) + Impulse.ar((note + 60).midicps, 0.0, 0.4);
+    in = In.ar(out, numChannels);
+    mix = [Convolution.ar(in[0], karnel, 1024, 0.5), Convolution.ar(in[1], karnel, 1024, 0.5)];
+    ReplaceOut.ar(out, Pan2.ar((in * (1.0 - conv)) + (conv * mix), pan));
+  }).store;
+
+  ~dirt.addModule('mod', { |dirtEvent|
+    dirtEvent.sendSynth('mod' ++ ~dirt.numChannels,  [
+      out: ~out,
+      mod: ~mod
+    ])
+  }, { ~mod.notNil });
+
+
+  SynthDef('mod'++ numChannels, { |out, pan = 0, mod|
+
+    var trate, index, in, mix, signal;
+
+    index = Amplitude.kr((mod.ceil).clip(0,1));
+
+    in = In.ar(out, numChannels);
+
+    trate = MouseY.kr(12,9320,1);
+
+    mix = MonoGrain.ar(in, 0.75 / trate, trate);
+
+    signal = Select.ar(index, [in, mix]);
+
+    ReplaceOut.ar(out, Pan2.ar(signal, pan));
+
+  }).store();
+
+
+  ~dirt.addModule('convolution_n', { |dirtEvent|
+    dirtEvent.sendSynth('convolution_n' ++ numChannels,
+      [
+        out: ~out,
+        convn: ~convn
+      ]
+    )
+  }, { ~convn.notNil });
+
+  SynthDef("convolution_n" ++ numChannels, { arg out, note, pan = 0, convn = 0;
+    var in, karnel, mix;
+    karnel = ClipNoise.ar(0.2);
+    in = In.ar(out, numChannels);
+    mix = [Convolution.ar(in[0], karnel, 1024, 0.5), Convolution.ar(in[1], karnel, 1024, 0.5)];
+    ReplaceOut.ar(out, Pan2.ar((in * (1.0 - convn)) + (convn * mix),pan));
+  }).store;
+
+  ~dirt.addModule('convolution_p', { |dirtEvent|
+    dirtEvent.sendSynth('convolution_p' ++ numChannels,
+      [
+        out: ~out,
+        convp: ~convp
+      ]
+    )
+  }, { ~convp.notNil });
+
+  SynthDef("convolution_p" ++ numChannels, { arg out, note = 0, pan = 0, convp = 0;
+    var src, kernel, mix, env;
+    kernel = Mix.new(LFPulse.ar(([0,2,5,10,24] + (note + 60)).midicps, 0, 0.1, 0.04));
+    src = In.ar(out, numChannels);
+    mix = RLPF.ar(Convolution.ar(src[0], kernel, 2048), 8500);
+    ReplaceOut.ar(out, Pan2.ar((src * (1.0 - convp)) + (convp * mix),pan));
+  }).store();
+
+  ~dirt.addModule('decay-filter', { |dirtEvent|
+    dirtEvent.sendSynth('decay-filter' ++ numChannels,
+      [
+        out: ~out,
+        decay: ~decay
+      ]
+    )
+  }, { ~decay.notNil });
+
+  SynthDef("decay-filter" ++ numChannels, { |out = 0, decay = 0|
+    var signal, mix, mix_2, trig;
+    signal = In.ar(out, numChannels);
+    trig = Decay.ar(Impulse.ar(decay, 2 / decay ));
+    mix = signal[0] * trig;
+    mix_2 = signal[1] * trig;
+    ReplaceOut.ar(out, [mix, mix_2]);
+  }).store;
+
+  ~dirt.addModule('wah', { |dirtEvent|
+    dirtEvent.sendSynth('wah' ++ numChannels,
+      [
+        out: ~out,
+        wah: ~wah
+      ]
+    )
+  }, { ~wah.notNil });
+
+  SynthDef("wah" ++ numChannels, { arg out, pan = 0, wah = 0;
+    var index, in, mix, signal;
+
+    index = Amplitude.kr((wah.ceil).clip(0,1));
+
+    in = In.ar(out, numChannels);
+
+    mix = RLPF.ar(in, LFNoise2.kr(wah.linexp(0, 1.0, 0.8, 40), 40, 84).midicps, 0.2);
+
+    signal = Select.ar(index, [in, mix]);
+
+    ReplaceOut.ar(out, Pan2.ar(signal, pan));
+  }).store;
+
+  ~dirt.addModule('henon', { |dirtEvent|
+    dirtEvent.sendSynth('henon' ++ numChannels,
+      [
+        out: ~out,
+        henon: ~henon
+      ]
+    )
+  }, { ~henon.notNil });
+
+  SynthDef("henon" ++ numChannels, { arg out, pan = 0, henon = 0;
+    var index, in, mix, rate;
+
+    rate = henon;
+
+    in = In.ar(out, numChannels);
+
+    mix = in * HenonC.ar(SampleRate.ir/2, LFNoise2.ar(0.6,1.2),  LFNoise1.ar(0.4,0.9));
+
+    ReplaceOut.ar(out, Pan2.ar((in * (1.0 - rate)) + (mix * rate), pan));
+  }).store;
+
+  ~dirt.addModule('flange', { |dirtEvent|
+    dirtEvent.sendSynth('flange' ++ numChannels,
+      [
+        out: ~out,
+        flangefq: ~flangefq,
+        flangefb: ~flangefb,
+      ]
+    )
+  }, { ~flangefq.notNil or: { ~flangefb.notNil } });
+
+  SynthDef("flange" ++ numChannels, { | out, pan = 0, flangefq = 0.1, flangefb = 0.1 |
+    var input, effect;
+    input = In.ar(out, numChannels);
+    input = input + LocalIn.ar(numChannels); //add some feedback
+    effect = DelayN.ar(input, 0.02, SinOsc.kr(flangefq, 0, 0.005, 0.005));
+    LocalOut.ar(flangefb * effect);
+    ReplaceOut.ar(out, Pan2.ar(effect, pan));
+  }).store;
+
+
+  ~dirt.addModule('pipe', { |dirtEvent|
+     dirtEvent.sendSynth('pipe' ++ numChannels,
+       [
+         out: ~out,
+         pipe: ~pipe
+       ]
+     )
+   }, { ~pipe.notNil && ~pipe != 0 });
+
+   SynthDef("pipe" ++ numChannels, { | out, pipe, pan = 0 |
+     var input;
+     input = In.ar(out, numChannels) ;
+     OffsetOut.ar(pipe, input);
+     ReplaceOut.ar(out, Silent.ar(numChannels));
+   },[\ir, \ir, \ir]).store;
+
+
+  // ~dirt.orderModules(['sound', 'vowel', 'flange', 'shape',  'crush', 'coarse', 'mod', 'wah', 'brick', 'spectral-delay','decay-filter','binfreeze', 'binscramble', 'binshift', 'binsmear', 'conv', 'convn', 'convp', 'henon', 'distortion', 'hpf', 'lpf', 'bpf', 'envelope', 'tremolo', 'phaser', 'convolution', 'convolution_n', 'convolution_p']);
+
+  ~dirt.orderModules(['sound', 'vowel', 'flange', 'shape',  'crush', 'coarse', 'mod', 'wah', 'brick', 'spectral-delay','decay-filter','binfreeze', 'binscramble', 'binshift', 'binsmear', 'conv', 'convn', 'convp', 'henon', 'distortion', 'hpf', 'lpf', 'bpf', 'envelope', 'tremolo', 'phaser', 'convolution', 'convolution_n', 'convolution_p', 'pipe']);
+
+
+)

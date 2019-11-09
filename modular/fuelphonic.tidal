@@ -1,0 +1,265 @@
+-- params
+synth = pS "synth"
+slew = pF "slew"
+cv = pF "cv"
+ch = pF "ch"
+length = pF "length"
+gate = pI "gate"
+decay = pF "decay"
+mix = pF "mix"
+morph = pF "morph"
+pan = pF "pan"
+-- functions
+fastr p xs = spreadr fast (map (* p) xs)
+zoomr p xs = spreadr ($) [zoom (0, x) | x <- xs]
+rotr p xs = spreadr (~>) xs
+degr xs = spreadr (degradeBy) xs
+chunkr xs f = spreadr ($) [chunk x (f) | x <- xs]
+rr xs = foldEvery xs (spreadr (<~) [0.125, 0.25, 0.5, 0.75])
+zz xs = foldEvery xs (zoom (0, 0.5))
+stutS n d = stut n 1 d
+ss x s e = sometimesBy x (within (s, e) (spreadr ($) [(stutS 3 0.25), (stutS 4 0.25), (stutS 5 0.3)]))
+ssA x = ss x 0 0.5
+ssB x = ss x 0.5 1
+br r f = spreadr f [ x * r | x <- [1,2,3,4,5,6,7,8]] . sometimes (zoom (0,0.5))
+brF r = br r fast
+brS r =  br r slow
+db = degradeBy
+sr a b = range a b rand
+ssBy p n d = sometimesBy p $ stut n 1 d
+cs xs = (fast 16 $ choose xs)
+nc xs = note (cs xs)
+oc xs = note $ cs [x * 12 | x <- xs]
+no ns os = nc ns |+| oc os
+noter p1 o = note (choose p1) |+| note (choose (map (* 12) o))
+susr xs = sustain (choose xs)
+dcyr xs = decay (choose xs)
+cc ch v = ccn ch # ccv v
+nord ch = midichan ch # amp 1 # s "nord"
+nordvar ch v = nord ch # cc 70 (127/8*v)
+zzz x = synth x # s "modular"
+z = zzz
+
+hush
+
+
+setcps(1.2)
+
+do
+  d1 $ stack [
+    z "st*2"
+    , ssA 0.4 $ z "ch*6?"
+    , z "oh"
+    ]
+  d2 $ nord "2(9,12)" # noter [0] [-3] # susr [0.3..0.7]
+  d8 $ stack [
+    nordvar 0 1
+    , nordvar 1 4
+    , nordvar 2 2
+    ]
+
+d1 $ fastr 1 [1,2] $ z "dp*8?"  # noter [0,3,7,11] [-2,-1,0,3,4,5] # susr [0.5,0.6,0.7,0.8] # pan (choose [0.5,0.8,0.2])
+
+
+d1 $ fastr 1 [1,1.5,2] $ stack [
+  -- degr [0.4] $ rotr 1 [1,0.5 ,0.3] $ z "st(5,8)" # sustain 0.2 # note (choose [0..30])
+  -- , fastr 0.5 [1,2,3] $ degr [0.3] $ rotr 1 [1,0.5,0.3] $ z "at(5,8,2)" # noter [0] [6] # sustain (range 0.2 0.3 rand)
+  -- , spreadr linger [0.5, 1] $ rotr 1 [0.3,0.5] $nord "2(5,8)" # noter [0,4] [-2] # sustain (range 0.05 0.1 rand)
+  fastr 0.5 [1] $ degr [0.1] $ z "dp(6,16)" # noter [0] [3] # sustain (range 1 0.9 rand)
+  , fast 6 $ z "mg" # mix (choose [0,0,0]) # morph (range 0 0.1 rand)
+  ] # cps(130/120)
+
+
+hush
+
+[0.1..0.8]
+
+
+d1 $ fastr 1 [1, 1.2] $ spreadr linger [0.333, 0.5, 1, 0.75, 0.25] $ chunk 32 (rev) $ stack [
+  z "st ~ st ~ ~ st ~ ~" # sustain 0
+  , z "cp(1,8,2)"
+  , z "ch*16?"
+  , z "oh"
+  , rotr 1 [0.25,0.5,1] $ nord (randcat ["2(6,8)", "2(7,8)", "2(5,8)"]) # noter [0,3,6] [-3,-2,-1] # sustain (range 0.05 0.8 rand) # slew 0.4
+  ] # cps(97/120)
+
+
+do
+  d1 $
+    -- spreadr linger [0.4,0.5, 0.25] $
+    -- chunk 6 (rev) $
+    fastr 2 [1,3,2] $
+    stack [
+    ssA 0.2 $ fastr 2 [3,4] $ z (randcat ["st", "bd*2?", "st*2", "bi", "ch*8?", "oh*2?", "cp"])
+    # note (irand 127) # susr [0.2..0.6] # pan (fast 6 $ rand)
+    , fastr 1 [2,4,6] $ z "at*8?" # note 64 # susr [0.1..0.1] # pan (fast 6 $ rand)
+    , fastr 1 [1,2,3] $ z "dp*9?"  # noter [0,3,7] [1..3] # susr [0.1..0.8] # pan (fast 5 $ rand)
+    , fastr 1 [3,4,6] $ nord (randcat ["2*6?","2*3"]) # noter [-1,0,3] [-3] # susr [0.4..0.8]
+    , fastr 0.8 [1,2,3,4] $ nord "0?" # noter [0,6,9,13,15] [-2,0,3,4,5] # susr [30..40] # amp 1
+    , fast 1 $ z "mg" # mix (choose [0,0,0]) # morph 0.1
+    , nordvar 0 2
+    , nordvar 2 2
+    ] # cps(slow 8 $ range 0.1 1.4 saw)
+
+hush
+
+
+do
+  -- hush
+  d1 $
+    degradeBy 0.1 $
+    -- spreadr linger [0.25, 0.5, 0.3, 1] $
+    fastr 1 [1,1.5,2,3] $
+    -- zoomr 0.5 [0.5, 0.25, 0.75,0.125] $
+    stack [
+    ssA 0.2 $slow 1 $ degr [0.4] $ rotr 0.5 [0.5 ,0.75] $ z "{st, bd}(3,8)" # susr [0.3..0.5] # note (choose [0..30])
+    , z "dp" # noter [0..12] [-2..3] # susr [0.3..0.5] # pan (fast 5 $ rand)
+    , ssA 0.3 $ randcat [z "ch*4", z "ch*3"]
+    , nord "2*3?" # noter [-2,0,3] [-3,-2] # susr [5..8]
+    , nordvar 2 1
+    , nord "3*8?" # noter [0,3,6] [-2..3] # susr [0.3..0.8]
+    , nordvar 3 2
+    , nord "0/16" # note "{0,6,11,13,27}" |+ noter [0] [-3,3] # susr [20] # amp 1
+    , nordvar 0 8
+    , fast 2 $ z "mg*8" # mix (choose [0,0,0]) # morph (rand * 0.1)
+    ] # cps(slow 4 $ range 0.3 1 rand)
+
+hush
+
+
+do
+  d1 $
+    -- linger 0.5 $
+    degr [0.8] $
+    fastr 1 [1,2,3,4,5] $
+    stack [
+    ssA 0.4 $ degradeBy 0.3 $ zzz (randcat ["st*4", "st*2", "st*5", "at*7", "bd*3", "cp","bd*2"])
+    , zzz (randcat ["ch*8", "ch*10", "oh*6"])
+    , zzz "dp*8?" # noter [0..11] [-2] # susr [0.1..0.2] # pan (fast 6 $ rand)
+    , zzz "at*6?" # noter [0..11] [(-3)..3]# susr [0.3..0.4]
+    , fastr 1 [1,3] $ nord (randcat ["2", "2*3", "2*2", "2*4","2*6"]) # noter [-1,0,3] [-3] # susr [0.1..0.4]
+    , fastr 0.5 [1,2,3] $ (2 <~) $ nord "3*8?" # noter [0] [-4..4] # susr [0.1..0.2]
+    -- , nord "1*8?" # noter [0,3,6] [-3..3] # susr [0.4]
+    , slow 16 $ nord "0" # note "{-24,-7,0,3,6,11,13}" |+ noter [0,3,6] [-1] # susr [24]
+    , nordvar 0 3
+    -- , nordvar 1 4
+    , nordvar 2 2
+    , nordvar 3 1
+    -- , fast 0.25 $ nord "8?" # rnote [0] [-3] # susr [0.5]
+    , fastr 1 [1,2,3] $ z "mg*8?" # mix (choose [0,0]) # morph (rand * 0.1)
+    ] # cps(slow 8 $ range 0.1 2 rand)
+
+
+hush
+
+
+do
+  hush
+  setcps(0.8)
+  d1 $
+    fastr 3 [0.9,0.5,0.4] $
+    rotr 0.5 [0.25, 0.5, 0.3] $
+    stack [
+    z "st(9,16)"
+    , z "cp(7,16,2)"
+    , z "at(5,16,3)" # note (choose [0..60]) # susr [0.1..0.5]
+    , z "ch(13,16)"
+    , z "oh(6,16)"
+    , fastr 0.5 [1,2,4] $nord "1(11,16)" # note "{0,6,11,15,13}" |+ noter [0] [2,3] # susr [0.1..0.4]
+    , nord "0" # note "{0,3,7,10}" |+ noter [0] [4] # susr [3] # amp 0.1
+    , nordvar 0 3
+    , nordvar 1 3
+    ] # cps (slow 8 $ range 0.1 1.8 saw)
+
+
+hush
+
+do
+  hush
+  d1 $
+    -- spreadr linger [0.5,0.8, 0.4] $
+    fastr 0.2 [1,2,4] $
+    degr [0] $
+    stack [
+    degr [0.4] $ z (fast 4 $ randcat ["{st,bd}", "{st,bd}*2", "{st,bd}*3"]) # note (choose [20..40]) # susr [0.2..0.5] # pan rand
+    , fastr 0.4 [1,2,3] $ z "dp(5,8)" # noter [0] [2..3] # susr [0.1..2] # pan (fast 8 $ rand)
+    , fastr 2 [1,2,3,4,5] $ z "at(3,8)" # noter [0..11] [-3..4] # susr [0.3..0.8]
+    , nord "2" # noter [0,2] [-4] # susr [0.1..0.3]
+    , fastr 0.25 [1,2,4,6,7] $nord "1(5,16)" # note "{0,6,11,15,13}" |+ noter [0,3,9] [2,3] # susr [8..13]
+    -- , slow 8 $ nord "0" # note "{0,3,6,11,13}" |+ noter [0,3,6] [2] # susr [24]
+    , nord "3*16?" # noter [0] [-2..0] # susr [0.1]
+    , nordvar 3 1
+    , z "mg*8" # mix (choose [0,0,0,1]) # morph (range 0.1 0.8 rand)
+    ] -- # cps(0.1 + (slow 26 $ saw*1.4))
+
+
+
+do
+  hush
+  setcps(110/120)
+  d1 $
+    -- chunk 3 (rev) $
+    sometimesBy 0.3 (spreadr (stut 6 1) (map (/8) [4,5])) $
+    -- degradeBy 0.8 $
+    stack [ z (randcat ["st*6", "st*4", "st*3", "st*2"])
+          , z (randcat ["bd/3", "", "bd/2"])
+          , z (randcat ["ch*8", "ch*6", "ch*7"])
+          , z (randcat ["oh", "oh*2", "oh*3"])
+          , z (randcat ["cp*3", "cp*2"])
+          , z (randcat ["at*5", "at*3", "at*7"]) # noter [0..11] [-3..3] # susr [0.1..0.4]
+          , nord (randcat ["1(5,8)", "1(3,8)", "1(2,8)"]) # note "{0,4,6,10,14}" |+ noter [0] [0,1] # susr [0.1..0.2]
+          , nordvar 1 3
+          , nord (randcat ["2*16?"]) # noter [0,4,6,10] [-3] # susr [0.2..0.4]
+          ]
+
+
+
+
+cps(0.8)
+
+
+d1 $ z "dp" # note (-14)
+
+
+
+  hush
+
+
+do
+  hush
+  setcps(90/120)
+  d1 $
+    degr [0.1] $
+    fastr 0.5 [1,2,3,4] $
+    spreadr ($) [euclid 11 16, euclid 8 11, euclid 7 13, euclid 6 11, euclid 3 13] $
+    stack [ z "st" # susr [0.3] #pan rand
+          , z "bd"
+          , z "oh" # pan rand
+          , z "at" # susr [0.4..0.8] # noter [0..12] [0..4] # pan rand
+          , nord "0"
+            # note "{0,3,7,11,15}" |+ noter [0,6,11] [2]
+            # susr [5..5]
+            # amp 1
+          , nordvar 0 3
+          , nord "2"
+            # noter [0,3] [-3]
+            # susr [1..2]
+          , nordvar 2 2
+          , nord "3"
+            # noter [0] [-2..3]
+            # susr [0.1..0.9]
+          , nordvar 3 1
+          ]
+  d8 $ fastr 1 [1,2,3]  $ z "mg*9" # mix (choose [0,1]) # morph (rand*0.8)
+
+
+hush
+
+
+do
+  d1 $ fastr 1 [1]  $ stack [
+    nord "1(9,16)" # note "{0,3,8,10}" |+ noter [0,5] [1] # susr [0.2..0.5]
+    , rotr 0.5 [0.25] $ synth "st(11,16)" # s "modular" # gate 1
+    ]
+
+:t fast

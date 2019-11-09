@@ -1,0 +1,16 @@
+hush
+
+
+do
+  d1 $
+    degr [0] $
+    fastr 2 [1.5,2, 3, 3.5,4,6,8,9] $
+    rotr 0.5 [0.5, 0.25, 0.3] $
+    stack [
+    degradeBy 0.2 $ zzz (randcat ["st*4", "st*2", "st*5", "bd*3", "cp","bd*2", "cp*3"])# note (choose [30..128]) # pan rand
+    -- degr [0.5] $ z (randcat ["st(3,8)", "st(4,8)", "st(2,8)", "st", "cp", "cp*3"]) 
+    , degr [0.3] $z "dp*8?" # noter [0..11] [0..3] # susr [0.2..0.8] # pan (fast 3 $ rand)
+    ] # cps(range 0.1 2 (fast 3 $ rand))
+  d2 $ fastr 0.5 [1,2,3] $ z "mg*8?" # mix (choose [0,0,0,0,0,1]) # morph (range 0 0.3 rand)
+
+  d2 $ fastr 0.5 [1,2,3] $ z "mg*8?" # mix 0 # morph (rand * 0.1)
