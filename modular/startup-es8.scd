@@ -6,13 +6,21 @@ s.options.hardwareBufferSize = 16;
 s.options.numOutputBusChannels = 16;
 s.options.numInputBusChannels = 0;
 s.waitForBoot{
-  var dictAt = { |dict, key, default|
+  var dictAt,es8, zzzOut;
+
+  SynthDef(\cv, {|ch=14, val=0, time=0|
+	OffsetOut.ar(ch, Lag.ar(DC.ar(1) * val, time));
+  }).store;
+
+  dictAt = { |dict, key, default|
 	if (dict.at(key) == nil) { default } { dict.at(key) };
   };
-  var es8 = Array.fill(8, { |i|
+
+  es8 = Array.fill(16, { |i|
 	Synth(\cv, [\ch, i])
   });
-  var zzzOut = (play: { |dirtEvent|
+
+  zzzOut = (play: { |dirtEvent|
 	var e, ch, out;
 	e = dirtEvent.event;
 	ch = dictAt.value(e, \ch, -1);
@@ -27,10 +35,6 @@ s.waitForBoot{
 	});
 	true
   });
-
-  SynthDef(\cv, {|ch=14, val=0, time=0|
-	OffsetOut.ar(ch, Lag.ar(DC.ar(1) * val, time));
-  }).store;
 
   ~dirt = SuperDirt(2, s);
   ~dirt.start();

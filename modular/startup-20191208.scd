@@ -22,6 +22,7 @@ s.waitForBoot{
   var es8;
   var es3;
   var es5;
+  var playDPO;
   var playSynthA;
   var playSynthB;
   var playGate;
@@ -57,6 +58,32 @@ s.waitForBoot{
   es5 = Array.fill(8, { |i|
 	Synth(\es5, [\ch, 8 + 6, \val, ch2val.(i)])
   });
+
+  playDPO = {|params, cvOffset=1|
+	var note, note2, idx, shp, agl, decay, slew, slew2, slewi, slews, slewa, trig, acc, pan;
+	note  = dictAt.value(params, \note,  0);
+	note2 = dictAt.value(params, \note2,  0);
+	idx   = dictAt.value(params, \idx,  0);
+	shp   = dictAt.value(params, \shp,  0);
+	agl   = dictAt.value(params, \ang,  0);
+	slew  = dictAt.value(params, \slew,  0);
+	slew2 = dictAt.value(params, \slew2,  0);
+	slewi = dictAt.value(params, \slewi,  0.2.rand);
+	slews = dictAt.value(params, \slews,  0.2.rand);
+	slewa = dictAt.value(params, \slewa,  0.2.rand);
+	trig  = dictAt.value(params, \gate,  1);
+	decay = dictAt.value(params, \sustain, 0.2);
+	pan = dictAt.value(params, \pan, 0.5);
+
+	es8[0].set(\val, n2cv.(note), \time, slew);
+	es8[1].set(\val, decay);
+	es8[2].set(\val, n2cv.(note2), \time, slew2);
+	es8[3].set(\val, idx, \time, slewi);
+	es8[4].set(\val, shp, \time, slewi);
+	es8[5].set(\val, agl, \time, slewi);
+	es5[0].set(\t_trig, trig, \time, 0.003);
+	es3[0].set(\val, pan);
+  };
 
   playSynthA = {|params, noteCh, decayCh, gateCh, panCh, cvOffset=1|
 	var note, decay, slew, trig, acc, pan;
@@ -94,18 +121,16 @@ s.waitForBoot{
 
   synths = (
 	// params, noteCh, decayCh, gateCh, panCh
-	dp: { |p| playSynthA.(p, 0, 1, 0, 0); },
-	at: { |p| playSynthA.(p, 2, 3, 5, 2); },
+	dp: { |p| playDPO.(p); },
 	bd: { |p| playSynthA.(p, 4, 5, 1, 1) },
-	bi: { |p| playSynthA.(p, 6, 7, 6, -1) },
+
 
 	// params, gateCh, panCh
-	// bd: { |p| playSynthB.(p, 1, 1) },
-	cp: { |p| playSynthB.(p, 2, 2) },
-	oh: { |p| playSynthB.(p, 3, 3) },
-	ch: { |p| playSynthB.(p, 4, 3) },
+	cp: { |p| playSynthB.(p, 3, 2) },
+	oh: { |p| playSynthB.(p, 4, 3) },
+	ch: { |p| playSynthB.(p, 5, 3) },
+	sn: { |p| playSynthB.(p, 6, 2) },
 	mg: { |p| playMG.(p, 4, 5)},
-	clock: { |p| playGate.(p, 7) },
   );
 
   zzzOut = (play: { |dirtEvent|
@@ -122,6 +147,6 @@ s.waitForBoot{
   ~dirt = SuperDirt(2, s);
   ~dirt.start();
   ~dirt.soundLibrary.addSynth(\modular, zzzOut);
-  ~dirt.soundLibrary.addMIDI(\nord, ~midiOut);
+  ~dirt.soundLibrary.addMIDI(\vbass, ~midiOut);
 };
 )

@@ -1,0 +1,105 @@
+-- params
+synth = pS "synth"
+slew = pF "slew"
+slew2 = pF "slew2"
+slewi = pF "slewi"
+cv = pF "cv"
+ch = pF "ch"
+length = pF "length"
+gate = pI "gate"
+decay = pF "decay"
+mix = pF "mix"
+morph = pF "morph"
+pan = pF "pan"
+note2 = pF "note2"
+idx = pF "idx"
+shp = pF "shp"
+agl = pF "agl"
+val = pF "val"
+-- functions
+fastr p xs = spreadr fast (map (* p) xs)
+zoomr p xs = spreadr ($) [zoom (0, x) | x <- xs]
+rotr p xs = spreadr (~>) xs
+degr xs = spreadr (degradeBy) xs
+chunkr xs f = spreadr ($) [chunk x (f) | x <- xs]
+rr xs = foldEvery xs (spreadr (<~) [0.125, 0.25, 0.5, 0.75])
+zz xs = foldEvery xs (zoom (0, 0.5))
+stutS n d = stut n 1 d
+ss x s e = sometimesBy x (within (s, e) (spreadr ($) [(stutS 3 0.25), (stutS 4 0.25), (stutS 5 0.3)]))
+ssA x = ss x 0 0.5
+ssB x = ss x 0.5 1
+br r f = spreadr f [ x * r | x <- [1,2,3,4,5,6,7,8]] . sometimes (zoom (0,0.5))
+brF r = br r fast
+brS r =  br r slow
+db = degradeBy
+sr a b = range a b rand
+ssBy p n d = sometimesBy p $ stut n 1 d
+cs xs = (fast 16 $ choose xs)
+nc xs = note (cs xs)
+oc xs = note $ cs [x * 12 | x <- xs]
+no ns os = nc ns |+| oc os
+noter p1 o = note (choose p1) |+| note (choose (map (* 12) o))
+susr xs = sustain (choose xs)
+dcyr xs = decay (choose xs)
+cc ch v = ccn ch # ccv v
+nord ch = midichan ch # amp 1 # s "nord"
+nordvar ch v = nord ch # cc 70 (127/8*v)
+zzz x = synth x # s "modular"
+z = zzz
+dgtn ch = midichan ch # amp 1 # s "dgtn"
+mixr x = mix (wchoose [(0, 1-x),(1, x)])
+rytm ch = midichan ch |+ note (-24)# amp 1 # s "rytm"
+shift x = ((x*1024) ~>)
+rfunc n s vmin vmax smin smax = degradeBy 0.6 $ spreadr fast (map (*0.25) [1,2,3,4,5,6,7,8]) $ shift s $ z n # val (range vmin vmax rand) # slew (range smin smax rand)
+
+
+
+
+d1 $ z "dp*8" # note 40
+
+
+do
+  let cnkitr x = chunk x (iter 8)
+      min = (0.8)
+      max = (0.3)
+  d1 $
+    -- degradeBy 0.8 $
+    -- chunk 3 (iter 8) $
+    spreadr linger [(1/16),(2/16),(3/16),1,(17/16),(19/16),(21/16)] $
+    -- chunk 8 (iter 8) $
+    -- spreadr slow [2,3,4,5,6,7] $
+    -- spreadr cnkitr [3,4,5,6,7,8,9,10] $
+    spreadr slow [1,2,3,8] $
+    spreadr rot [0,1,2,3] $
+    stack [
+    slow 2 $ spreadr ($) [euclid 11 16, euclid 8 19, euclid 7 17, euclid 16 19, euclid 9 13, euclid 11 18] $
+      z "dp(9,11)" # note (choose [0,3,6,11]) |+ note (wchoose [(48, 0.2), (-24,0.4), (-12, 0.5),(0,0.3)]) # slew (range 0 0.1 rand) |+ note 24
+    , fast 4 $ rfunc "decay1" 2 min max 0 1
+    , fast 3 $ rfunc "decay2" 3 min max 0 1
+    , rfunc "pitch2" 4 (0) 0.8 0 1
+    , rfunc "pitch3" 5 (0) 1 0 1
+    , fast 16 $ rfunc "idx" 6 (0) 0.5 0 0.3 |* val 1
+    , fast 32 $ rfunc "pan" 7 (-1) 1 0 1
+    , fast 24 $ rfunc "speed1" 7 (-1) 1 0 1
+    , fast 24 $ rfunc "speed2" 8 (0) 1 0 1
+    , spreadr fast [0.5,1,2,3,4,5] $ z "mg*11?" # mixr 0.1 # morph (range 0.01 0.5 rand)
+    ] # cps (range 1.3 5.4 (slow 3 $ saw * (slow 2 $ sine * 4)))
+
+d2 $
+  degradeBy 0 $
+  chunk 8 (rev) $
+  spreadr linger [(1/16),1,(9/8),(10/8)] $
+  spreadr linger [(1/12), (2/8), (3/16), (3/8), (7/8), 1,1,1,1, (9/8)] $
+  -- spreadr linger [(15/16),1,(9/8),(10/8)] $
+  spreadr iter [1,2,3,4,5,6,7,8] $
+  stack [
+  -- fastr 0.5 [1,2,3,4,5,6,7] $
+  -- z (randcat ["bd*4?", "bd", "bd*2?", "b8", "b8*3", "ch*4?", "oh", "cp*3?", "sn", "sn*3"])
+  z "bd(5,8)?"
+  ,z "cp(1,8,6)?"
+  ,z "ch(7,8)"
+  ]
+
+d2 $ silence
+
+hush

@@ -4,6 +4,9 @@ MIDIClient.list;
 ~midiOut = MIDIOut.newByName("UX16", "UX16 MIDI 1");
 ~midiOut.latency = 0.0;
 
+~digitoneOut = MIDIOut.newByName("Elektron Digitone", "Elektron Digitone MIDI 1");
+~digitoneOut.latency = 0.0;
+
 //Server.supernova;
 
 s.options.device = "SuperCollider";
@@ -22,10 +25,13 @@ s.waitForBoot{
   var es8;
   var es3;
   var es5;
+  var playDPO;
   var playSynthA;
   var playSynthB;
   var playGate;
   var playMG;
+  var playES8;
+  var playES3;
   var synths;
   var zzzOut;
 
@@ -58,10 +64,21 @@ s.waitForBoot{
 	Synth(\es5, [\ch, 8 + 6, \val, ch2val.(i)])
   });
 
-  playSynthA = {|params, noteCh, decayCh, gateCh, panCh, cvOffset=1|
-	var note, decay, slew, trig, acc, pan;
+  playDPO = {|params, cvOffset=1|
+	var note, note2, idx, shp, agl, decay, slew, slew2, slewi, slews, slewa, trig, acc, pan;
 	note  = dictAt.value(params, \note,  0);
 	slew  = dictAt.value(params, \slew,  0);
+	trig  = dictAt.value(params, \gate,  1);
+
+	es8[0].set(\val, n2cv.(note), \time, slew);
+	es5[0].set(\t_trig, trig, \time, 0.003);
+  };
+
+  playSynthA = {|params, noteCh, decayCh, gateCh, panCh, cvOffset=1|
+	var note, note2, decay, slew, slew2,trig, acc, pan;
+	note  = dictAt.value(params, \note,  0);
+	slew  = dictAt.value(params, \slew,  0);
+	slew2  = dictAt.value(params, \slew2,  0);
 	trig  = dictAt.value(params, \gate,  1);
 	decay = dictAt.value(params, \sustain, 0.2) * cvOffset;
 	pan = dictAt.value(params, \pan, 0.5) * cvOffset;
@@ -69,7 +86,7 @@ s.waitForBoot{
 	es8[noteCh].set(\val, n2cv.(note), \time, slew);
 	es8[decayCh].set(\val, decay);
 	es5[gateCh].set(\t_trig, trig, \time, 0.003);
-	es3[panCh].set(\val, pan);
+	// es3[panCh].set(\val, pan);
   };
 
   playSynthB = {|params, ch, panCh|
@@ -91,21 +108,42 @@ s.waitForBoot{
 	es3[morphCh].set(\val, dictAt.value(params, \morph,  0));
   };
 
+  playES8 = {|params, ch|
+	var val, slew;
+	val = dictAt.value(params, \val,  0);
+	slew = dictAt.value(params, \slew,  0);
+	es8[ch].set(\val, val, \time, slew);
+  };
+
+  playES3 = {|params, ch|
+	var val, slew;
+	val = dictAt.value(params, \val,  0);
+	slew = dictAt.value(params, \slew,  0);
+	es3[ch].set(\val, val, \time, slew);
+  };
 
   synths = (
-	// params, noteCh, decayCh, gateCh, panCh
-	dp: { |p| playSynthA.(p, 0, 1, 0, 0); },
-	at: { |p| playSynthA.(p, 2, 3, 5, 2); },
-	bd: { |p| playSynthA.(p, 4, 5, 1, 1) },
-	bi: { |p| playSynthA.(p, 6, 7, 6, -1) },
+	dp: { |p| playDPO.(p); },
+	// bj: { |p| playSynthA.(p, 3, 4, 5, 1, 1) },
+	bd: { |p| playSynthA.(p, 6, 7, 2, 2) },
+
+	pitch2: { |p| playES8.(p, 1); },
+	decay1: { |p| playES8.(p, 2); },
+	decay2: { |p| playES8.(p, 3); },
+	idx:    { |p| playES8.(p, 4); },
+	pitch3: { |p| playES8.(p, 5); },
+	pan:    { |p| playES3.(p, 0); },
+	speed1: { |p| playES3.(p, 2); },
+	speed2: { |p| playES3.(p, 3); },
 
 	// params, gateCh, panCh
-	// bd: { |p| playSynthB.(p, 1, 1) },
-	cp: { |p| playSynthB.(p, 2, 2) },
-	oh: { |p| playSynthB.(p, 3, 3) },
-	ch: { |p| playSynthB.(p, 4, 3) },
+	b8: { |p| playGate.(p, 3) },
+	sn: { |p| playGate.(p, 4) },
+	cp: { |p| playGate.(p, 5) },
+	oh: { |p| playGate.(p, 6) },
+	ch: { |p| playGate.(p, 7) },
+
 	mg: { |p| playMG.(p, 4, 5)},
-	clock: { |p| playGate.(p, 7) },
   );
 
   zzzOut = (play: { |dirtEvent|
@@ -123,5 +161,6 @@ s.waitForBoot{
   ~dirt.start();
   ~dirt.soundLibrary.addSynth(\modular, zzzOut);
   ~dirt.soundLibrary.addMIDI(\nord, ~midiOut);
+  ~dirt.soundLibrary.addMIDI(\dgtn, ~digitoneOut)
 };
 )
